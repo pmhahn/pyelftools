@@ -25,7 +25,7 @@ def main():
         return 1
     else:
         tests = unittest.TestLoader().discover('test', 'test*.py', 'test')
-        result = unittest.TextTestRunner().run(tests)
+        result = unittest.TextTestRunner(failfast=True).run(tests)
         if result.wasSuccessful():
             return 0
         else:
