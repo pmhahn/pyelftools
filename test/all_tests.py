@@ -24,8 +24,8 @@ def main():
         sys.exit('Error: Please run me from the root dir of pyelftools!')
     run_test_script('test/run_all_unittests.py')
     run_test_script('test/run_examples_test.py')
-    run_test_script('test/run_readelf_tests.py', '--parallel')
-    run_test_script('test/run_dwarfdump_tests.py', '--parallel')
+    run_test_script('test/run_readelf_tests.py')
+    run_test_script('test/run_dwarfdump_tests.py')
 
 if __name__ == '__main__':
     sys.exit(main())
