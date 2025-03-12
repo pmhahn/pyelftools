@@ -7,6 +7,9 @@
 # Eli Bendersky (eliben@gmail.com)
 # This code is in the public domain
 #-------------------------------------------------------------------------------
+from typeguard import install_import_hook
+install_import_hook('elftools')
+
 import subprocess
 import sys
 from utils import is_in_rootdir

@@ -16,6 +16,9 @@ import traceback
 import itertools
 from typing import IO, TYPE_CHECKING
 
+from typeguard import install_import_hook, typechecked
+install_import_hook('elftools')
+
 # For running from development directory. It should take precedence over the
 # installed pyelftools.
 sys.path.insert(0, '.')
@@ -102,6 +105,7 @@ _CONTROL_CHAR_RE = re.compile(r'[\x01-\x1f]')
 def _format_symbol_name(s: str) -> str:
     return _CONTROL_CHAR_RE.sub(lambda match: '^' + chr(0x40 + ord(match[0])), s)
 
+@typechecked
 class ReadElf:
     """ display_* methods are used to emit output into the output stream
     """
