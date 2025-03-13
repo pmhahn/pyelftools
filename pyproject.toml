@@ -44,6 +44,7 @@ Issues = "https://github.com/eliben/pyelftools/issues"
 
 [dependency-groups]
 typing = ["mypy[reports]", "pyright", "typeguard"]
+test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-xdist"]
 
 [tool.setuptools]
 packages = [
@@ -79,3 +80,55 @@ html_report = "mypy"
 packages = "elftools"
 junit_xml = "mypy.junit.xml"
 junit_format = "per_file"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    # "-ra",
+    # "--quiet",
+    # "--verbose",
+    "--cov=elftools",
+    "--no-cov-on-fail",
+    "--cov-branch",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:cov",
+    # "--benchmark-autosave",
+    "--benchmark-warmup=off",
+    "--benchmark-warmup-iterations=0",
+    "--benchmark-min-rounds=1",
+    "--numprocesses=logical",
+    "--doctest-modules",
+]
+pythonpath = [
+    ".",
+]
+testpaths = [
+    "test",
+    "elftools",
+]
+norecursedirs = [
+    "__pycache__",
+    "testfiles_for_*",
+    "external_tools",
+]
+python_files = [
+    "test_*.py",
+]
+junit_family = "xunit2"
+required_plugins = [
+    "pytest-benchmark",
+    "pytest-cov",
+    "pytest-xdist",
+]
+
+[tool.coverage.report]
+exclude_also = [
+    'raise AssertionError',
+    'raise NotImplementedError',
+    'if 0',
+    'if __name__ == .__main__.:',
+    'if TYPE_CHECKING:',
+    'class .*\bProtocol\):',
+    '@(abc\.)?abstractmethod',
+    '@overload',
+]
