@@ -61,7 +61,7 @@ class EHABIInfo:
         word0, word1 = eh_index_data['word0'], eh_index_data['word1']
 
         if word0 & 0x80000000 != 0:
-            return CorruptEHABIEntry('Corrupt ARM exception handler table entry: %x' % n)
+            return CorruptEHABIEntry(f'Corrupt ARM exception handler table entry: {n:x}')
 
         function_offset = arm_expand_prel31(word0, self.section_offset() + n * EHABI_INDEX_ENTRY_SIZE)
 
@@ -80,7 +80,7 @@ class EHABIInfo:
                 # highest bit is one, arm compact model
                 # highest half must be 0b1000 for compact model
                 if word0 & 0x70000000 != 0:
-                    return CorruptEHABIEntry('Corrupt ARM compact model table entry: %x' % n)
+                    return CorruptEHABIEntry(f'Corrupt ARM compact model table entry: {n:x}')
                 per_index = (word0 >> 24) & 0x7f
                 if per_index == 0:
                     # arm compact model 0
@@ -103,7 +103,7 @@ class EHABIInfo:
         else:
             # highest bit is one, compact model must be 0
             if word1 & 0x7f000000 != 0:
-                return CorruptEHABIEntry('Corrupt ARM compact model table entry: %x' % n)
+                return CorruptEHABIEntry(f'Corrupt ARM compact model table entry: {n:x}')
             opcode = [(word1 & 0xFF0000) >> 16, (word1 & 0xFF00) >> 8, word1 & 0xFF]
             return EHABIEntry(function_offset, 0, opcode)
 
@@ -164,7 +164,7 @@ class EHABIEntry:
         return "<EHABIEntry function_offset=0x%x, personality=%d, %sbytecode=%s>" % (
             self.function_offset,
             self.personality,
-            "eh_table_offset=0x%x, " % self.eh_table_offset if self.eh_table_offset else "",
+            f"eh_table_offset=0x{self.eh_table_offset:x}, " if self.eh_table_offset else "",
             self.bytecode_array)
 
 
@@ -178,7 +178,7 @@ class CorruptEHABIEntry(EHABIEntry):
         self.reason = reason
 
     def __repr__(self) -> str:
-        return "<CorruptEHABIEntry reason=%s>" % self.reason
+        return f"<CorruptEHABIEntry reason={self.reason}>"
 
 
 class CannotUnwindEHABIEntry(EHABIEntry):
@@ -190,7 +190,7 @@ class CannotUnwindEHABIEntry(EHABIEntry):
                                                      unwindable=False)
 
     def __repr__(self) -> str:
-        return "<CannotUnwindEHABIEntry function_offset=0x%x>" % self.function_offset
+        return f"<CannotUnwindEHABIEntry function_offset=0x{self.function_offset:x}>"
 
 
 class GenericEHABIEntry(EHABIEntry):
@@ -201,7 +201,7 @@ class GenericEHABIEntry(EHABIEntry):
         super().__init__(function_offset, personality, bytecode_array=None)
 
     def __repr__(self) -> str:
-        return "<GenericEHABIEntry function_offset=0x%x, personality=0x%x>" % (self.function_offset, self.personality)
+        return f"<GenericEHABIEntry function_offset=0x{self.function_offset:x}, personality=0x{self.personality:x}>"
 
 
 def arm_expand_prel31(address: int, place: int) -> int:

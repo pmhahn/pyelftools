@@ -248,7 +248,7 @@ class CallFrameInfo:
                 args = [struct_parse(structs.the_Dwarf_uleb128, self.stream)]
             
             else:
-                dwarf_assert(False, 'Unknown CFI opcode: 0x%x' % opcode)
+                dwarf_assert(False, f'Unknown CFI opcode: 0x{opcode:x}')
 
             instructions.append(CallFrameInstruction(opcode=opcode, args=args))
             offset = self.stream.tell()
@@ -289,7 +289,7 @@ class CallFrameInfo:
         # Augmentation parsing works in minimal mode here: we need the length
         # field to be able to skip unhandled augmentation fields.
         assert augmentation.startswith(b'z'), (
-            'Unhandled augmentation string: {}'.format(repr(augmentation)))
+            f'Unhandled augmentation string: {repr(augmentation)}')
 
         available_fields: dict[bytes, Construct | Literal[True]] = {
             b'z': entry_structs.Dwarf_uleb128('length'),
@@ -375,7 +375,7 @@ class CallFrameInfo:
             ptr += self.address + stream_offset
 
         else:
-            assert False, 'Unsupported encoding modifier for LSDA pointer: {:#x}'.format(modifier)
+            assert False, f'Unsupported encoding modifier for LSDA pointer: {modifier:#x}'
 
         return ptr
 
@@ -422,7 +422,7 @@ class CallFrameInfo:
             result['initial_location'] += (
                 self.address + initial_location_offset)
         else:
-            assert False, 'Unsupported encoding: {:#x}'.format(encoding)
+            assert False, f'Unsupported encoding: {encoding:#x}'
 
         return result
 
@@ -477,8 +477,7 @@ class CallFrameInstruction:
         self.args = args
 
     def __repr__(self) -> str:
-        return '%s (0x%x): %s' % (
-            instruction_name(self.opcode), self.opcode, self.args)
+        return f'{instruction_name(self.opcode)} (0x{self.opcode:x}): {self.args}'
 
 
 class CFIEntry:
@@ -635,7 +634,7 @@ class CFIEntry:
                 _add_to_order(instr.args[0])
                 dwarf_assert(
                     isinstance(self, FDE),
-                    '%s instruction must be in a FDE' % name)
+                    f'{name} instruction must be in a FDE')
                 assert last_line_in_CIE is not None
                 if instr.args[0] in last_line_in_CIE:
                     cur_line[instr.args[0]] = last_line_in_CIE[instr.args[0]]
@@ -710,7 +709,7 @@ class RegisterRule:
         self.arg = arg
 
     def __repr__(self) -> str:
-        return 'RegisterRule(%s, %s)' % (self.type, self.arg)
+        return f'RegisterRule({self.type}, {self.arg})'
 
 
 class CFARule:
@@ -723,8 +722,7 @@ class CFARule:
         self.expr = expr
 
     def __repr__(self) -> str:
-        return 'CFARule(reg=%s, offset=%s, expr=%s)' % (
-            self.reg, self.offset, self.expr)
+        return f'CFARule(reg={self.reg}, offset={self.offset}, expr={self.expr})'
 
 
 # Represents the decoded CFI for an entry, which is just a large table,

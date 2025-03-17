@@ -299,9 +299,9 @@ class LocationLists:
         elif type in ('DW_LLE_base_addressx', 'DW_LLE_startx_endx', 'DW_LLE_startx_length'):
             # We don't have sample binaries for those LLEs. Their proper parsing would
             # require knowing the CU context (so that indices can be resolved to code offsets)
-            raise NotImplementedError("Location list entry type %s is not supported yet" % (type,))
+            raise NotImplementedError(f"Location list entry type {type} is not supported yet")
         else:
-            raise DWARFError(False, "Unknown DW_LLE code: %s" % (type,))
+            raise DWARFError(False, f"Unknown DW_LLE code: {type}")
 
     # Locviews is the dict, mapping locview offsets to corresponding loclist offsets
     def _parse_locview_pairs(self, locviews: Mapping[int, int]) -> list[LocationViewPair]:

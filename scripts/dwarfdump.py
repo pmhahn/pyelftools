@@ -100,17 +100,14 @@ def _safe_DIE_linkage_name(die: DIE, default: str | None = None) -> str | None:
 
 def _desc_ref(attr, die: DIE, extra: str = '') -> str:
     if extra:
-        extra = " \"%s\"" % extra
+        extra = f" \"{extra}\""
     if attr.form == 'DW_FORM_ref_addr':
-        return "0x%016x%s" % (attr.value, extra)
+        return f"0x{attr.value:016x}{extra}"
     if attr.form == 'DW_FORM_ref_sig8':
-        return "0x%016x" % attr.value
+        return f"0x{attr.value:016x}"
     # TODO: leading zeros on the addend to CU - sometimes present, sometimes not.
     # Check by the LLVM sources.    
-    return "cu + 0x%04x => {0x%08x}%s" % (
-        attr.raw_value,
-        die.cu.cu_offset + attr.raw_value,
-        extra)
+    return f"cu + 0x{attr.raw_value:04x} => {{0x{die.cu.cu_offset + attr.raw_value:08x}}}{extra}"
 
 def _desc_data(attr, die: DIE) -> str:
     """ Hex with length driven by form
@@ -119,31 +116,31 @@ def _desc_data(attr, die: DIE) -> str:
     return "0x%0*x" % (len, attr.value,)
 
 def _desc_strx(attr, die: DIE) -> str:
-    return "indexed (%08x) string = \"%s\"" % (attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\"))
+    return "indexed ({:08x}) string = \"{}\"".format(attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\"))
 
 FORM_DESCRIPTIONS = dict(
-    DW_FORM_string=lambda attr, die: "\"%s\"" % (bytes2str(attr.value).replace("\\", "\\\\"),),
-    DW_FORM_strp=lambda attr, die: " .debug_str[0x%08x] = \"%s\"" % (attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\")),
+    DW_FORM_string=lambda attr, die: "\"{}\"".format(bytes2str(attr.value).replace("\\", "\\\\")),
+    DW_FORM_strp=lambda attr, die: " .debug_str[0x{:08x}] = \"{}\"".format(attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\")),
     DW_FORM_strx1=_desc_strx,
     DW_FORM_strx2=_desc_strx,
     DW_FORM_strx3=_desc_strx,
     DW_FORM_strx4=_desc_strx,
-    DW_FORM_line_strp=lambda attr, die: ".debug_line_str[0x%08x] = \"%s\"" % (attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\")),
+    DW_FORM_line_strp=lambda attr, die: ".debug_line_str[0x{:08x}] = \"{}\"".format(attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\")),
     DW_FORM_flag_present=lambda attr, die: "true",
-    DW_FORM_flag=lambda attr, die: "0x%02x" % int(attr.value),
+    DW_FORM_flag=lambda attr, die: f"0x{int(attr.value):02x}",
     DW_FORM_addr=lambda attr, die: "0x%0*x" % (_addr_str_length(die), attr.value),
     DW_FORM_addrx=lambda attr, die: "indexed (%08x) address = 0x%0*x" % (attr.raw_value, _addr_str_length(die), attr.value),
     DW_FORM_data1=_desc_data,
     DW_FORM_data2=_desc_data,
     DW_FORM_data4=_desc_data,
     DW_FORM_data8=_desc_data,
-    DW_FORM_block1=lambda attr, die: "<0x%02x> %s " % (len(attr.value), " ".join("%02x" %b for b in attr.value)),
-    DW_FORM_block2=lambda attr, die: "<0x%04x> %s " % (len(attr.value), " ".join("%02x" %b for b in attr.value)),
-    DW_FORM_block4=lambda attr, die: "<0x%08x> %s " % (len(attr.value), " ".join("%02x" %b for b in attr.value)),
+    DW_FORM_block1=lambda attr, die: "<0x{:02x}> {} ".format(len(attr.value), " ".join(f"{b:02x}" for b in attr.value)),
+    DW_FORM_block2=lambda attr, die: "<0x{:04x}> {} ".format(len(attr.value), " ".join(f"{b:02x}" for b in attr.value)),
+    DW_FORM_block4=lambda attr, die: "<0x{:08x}> {} ".format(len(attr.value), " ".join(f"{b:02x}" for b in attr.value)),
     DW_FORM_ref=_desc_ref,
     DW_FORM_ref1=_desc_ref, DW_FORM_ref2=_desc_ref,
     DW_FORM_ref4=_desc_ref, DW_FORM_ref8=_desc_ref,
-    DW_FORM_sec_offset=lambda attr,die:  "0x%08x" % (attr.value,),
+    DW_FORM_sec_offset=lambda attr,die:  f"0x{attr.value:08x}",
     DW_FORM_exprloc=lambda attr, die: _desc_expression(attr.value, die)
 )
 
@@ -176,7 +173,7 @@ def _desc_decl_file(attr, die: DIE) -> str:
         file_name = bytes2str(file_entry.name)
     else:
         raise DWARFError("Invalid source filename entry index in a decl_file attribute")
-    return "\"%s\"" % (os.path.join(dir, file_name),)
+    return f"\"{os.path.join(dir, file_name)}\""
 
 
 def _desc_ranges(attr, die: DIE) -> str:
@@ -198,8 +195,8 @@ def _desc_ranges(attr, die: DIE) -> str:
             base_ip = entry.base_address
         else:
             raise NotImplementedError("Unknown object in a range list")
-    prefix = "indexed (0x%x) rangelist = " % attr.raw_value if attr.form == 'DW_FORM_rnglistx' else ''
-    return ("%s0x%08x\n" % (prefix, attr.value)) + "\n".join(lines)
+    prefix = f"indexed (0x{attr.raw_value:x}) rangelist = " if attr.form == 'DW_FORM_rnglistx' else ''
+    return (f"{prefix}0x{attr.value:08x}\n") + "\n".join(lines)
 
 def _desc_locations(attr, die: DIE) -> str:
     cu = die.cu
@@ -227,8 +224,8 @@ def _desc_locations(attr, die: DIE) -> str:
                 base_ip = entry.base_address
             else:
                 raise NotImplementedError("Unknown object in a location list")
-        prefix = "indexed (0x%x) loclist = " % attr.raw_value if attr.form == 'DW_FORM_loclistx' else ''
-        return ("%s0x%08x:\n" % (prefix, attr.value)) + "\n".join(lines)
+        prefix = f"indexed (0x{attr.raw_value:x}) loclist = " if attr.form == 'DW_FORM_loclistx' else ''
+        return (f"{prefix}0x{attr.value:08x}:\n") + "\n".join(lines)
 
 # By default, numeric arguments are spelled in hex with a leading 0x
 def _desc_operationarg(s: str | int | list, cu: CompileUnit) -> str:
@@ -240,7 +237,7 @@ def _desc_operationarg(s: str | int | list, cu: CompileUnit) -> str:
         if s and isinstance(s[0], DWARFExprOp): # Subexpression
             return '(' + '; '.join(_desc_operation(op.op, op.op_name, op.args, cu) for op in s) + ')'
         else:
-            return " ".join((hex(len(s)), *("0x%02x" % b for b in s)))
+            return " ".join((hex(len(s)), *(f"0x{b:02x}" for b in s)))
 
 def _arch(cu: CompileUnit) -> str:
     return cu.dwarfinfo.config.machine_arch
@@ -265,18 +262,9 @@ def _desc_operation(op, op_name: str, args, cu: CompileUnit) -> str:
     elif op_name in ('DW_OP_entry_value', 'DW_OP_GNU_entry_value'): # No space between opcode and args
         return op_name + _desc_operationarg(args[0], cu)
     elif op_name == 'DW_OP_regval_type': # Arg is a DIE pointer
-        return "%s %s (0x%08x -> 0x%08x) \"%s\"" % (
-            op_name,
-            _desc_reg(args[0], cu),
-            args[1],
-            args[1] + cu.cu_offset,
-            _DIE_name(cu._get_cached_DIE(args[1] + cu.cu_offset)))
+        return f"{op_name} {_desc_reg(args[0], cu)} (0x{args[1]:08x} -> 0x{args[1] + cu.cu_offset:08x}) \"{_DIE_name(cu._get_cached_DIE(args[1] + cu.cu_offset))}\""
     elif op_name == 'DW_OP_convert': # Arg is a DIE pointer
-        return "%s (0x%08x -> 0x%08x) \"%s\"" % (
-            op_name,
-            args[0],
-            args[0] + cu.cu_offset,
-            _DIE_name(cu._get_cached_DIE(args[0] + cu.cu_offset)))
+        return f"{op_name} (0x{args[0]:08x} -> 0x{args[0] + cu.cu_offset:08x}) \"{_DIE_name(cu._get_cached_DIE(args[0] + cu.cu_offset))}\""
     elif args:
         return op_name + ' ' + ', '.join(_desc_operationarg(s, cu) for s in args)
     else:
@@ -305,7 +293,7 @@ def _desc_expression(expr, die: DIE) -> str:
     else:
         lines = [_desc_operation(op.op, op.op_name, op.args, cu) for op in parsed[0:first_unsupported]]
         start_of_unparsed = parsed[first_unsupported].offset
-        lines.append("<decoding error> " + " ".join("%02x" % b for b in expr[start_of_unparsed:]))
+        lines.append("<decoding error> " + " ".join(f"{b:02x}" for b in expr[start_of_unparsed:]))
     return ", ".join(lines)
 
 def _desc_datatype(attr, die: DIE) -> str:
@@ -388,7 +376,7 @@ class ReadElf:
         self._emitline(".debug_info contents:")
         for cu in self._dwarfinfo.iter_CUs():
             if cu.header.version >= 5:
-                unit_type_str = " unit_type = %s," % cu.header.unit_type
+                unit_type_str = f" unit_type = {cu.header.unit_type},"
             else:
                 unit_type_str = ''
 
@@ -409,18 +397,18 @@ class ReadElf:
                 if not die.is_null(): 
                     self._emitline("0x%08x: %s [%d] %s %s" % (
                         die.offset,
-                        die.tag if isinstance(die.tag, str) else "DW_TAG_unknown_%x" % die.tag,
+                        die.tag if isinstance(die.tag, str) else f"DW_TAG_unknown_{die.tag:x}",
                         die.abbrev_code,
                         '*' if die.has_children else '',
-                        '(0x%08x)' % die.get_parent().offset if die.get_parent() is not None else ''))
+                        f'(0x{die.get_parent().offset:08x})' if die.get_parent() is not None else ''))
                     for attr_name in die.attributes:
                         attr = die.attributes[attr_name]
-                        self._emitline("              %s [%s]	(%s)" % (
-                            attr_name if isinstance(attr_name, str) else "DW_AT_unknown_%x" % (attr_name,),
+                        self._emitline("              {} [{}]	({})".format(
+                            attr_name if isinstance(attr_name, str) else f"DW_AT_unknown_{attr_name:x}",
                             attr.form,
                             self.describe_attr_value(die, attr)))
                 else:
-                    self._emitline("0x%08x: NULL" % (die.offset,))
+                    self._emitline(f"0x{die.offset:08x}: NULL")
                     parent = die.get_parent()
                 self._emitline()
 
@@ -498,7 +486,7 @@ class ReadElf:
         base_ip = _get_cu_base(cu)        
         for entry in rangelist:
             type = entry.entry_type
-            self._emit("0x%08x: [%s]:  " % (entry.entry_offset, type.ljust(max_type_len)))
+            self._emit(f"0x{entry.entry_offset:08x}: [{type.ljust(max_type_len)}]:  ")
             if type == 'DW_RLE_base_address':
                 base_ip = entry.address
                 self._emitline("0x%0*x" % (addr_str_len, base_ip))
@@ -523,10 +511,10 @@ class ReadElf:
             else:
                 raise NotImplementedError()
         last = rangelist[-1]
-        self._emitline("0x%08x: [DW_RLE_end_of_list ]" % (last.entry_offset + last.entry_length,))
+        self._emitline(f"0x{last.entry_offset + last.entry_length:08x}: [DW_RLE_end_of_list ]")
 
 SCRIPT_DESCRIPTION = 'Display information about the contents of ELF format files'
-VERSION_STRING = '%%(prog)s: based on pyelftools %s' % __version__
+VERSION_STRING = f'%(prog)s: based on pyelftools {__version__}'
 
 def main(stream: IO[str] | None = None) -> None:
     # parse the command-line arguments and invoke ReadElf
@@ -548,9 +536,9 @@ def main(stream: IO[str] | None = None) -> None:
     # Section dumpers
     sections = ('info', 'loclists', 'rnglists') # 'loc', 'ranges' not implemented yet
     for section in sections:
-        argparser.add_argument('--debug-%s' % section,
+        argparser.add_argument(f'--debug-{section}',
             action='store_true', dest=section,
-            help=('Display the contents of DWARF debug_%s section.' % section))
+            help=(f'Display the contents of DWARF debug_{section} section.'))
 
     args = argparser.parse_args()
 
@@ -580,7 +568,7 @@ def main(stream: IO[str] | None = None) -> None:
             #    readelf.dump_ranges()
         except ELFError as ex:
             sys.stdout.flush()
-            sys.stderr.write('ELF error: %s\n' % ex)
+            sys.stderr.write(f'ELF error: {ex}\n')
             if args.show_traceback:
                 traceback.print_exc()
             sys.exit(1)

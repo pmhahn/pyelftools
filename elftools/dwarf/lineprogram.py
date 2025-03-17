@@ -71,10 +71,10 @@ class LineState:
 
     def __repr__(self) -> str:
         return '\n'.join((
-            '<LineState %x:' % id(self),
-            '  address = 0x%x' % self.address,
+            f'<LineState {id(self):x}:',
+            f'  address = 0x{self.address:x}',
             *(
-                '  %s = %s' % (attr, getattr(self, attr))
+                f'  {attr} = {getattr(self, attr)}'
                 for attr in ('file', 'line', 'column', 'is_stmt', 'basic_block',
                     'end_sequence', 'prologue_end', 'epilogue_begin', 'isa',
                     'discriminator')
@@ -269,7 +269,6 @@ class LineProgram:
                     state.isa = operand
                     add_entry_old_state(opcode, [operand])
                 else:
-                    dwarf_assert(False, 'Invalid standard line program opcode: %s' % (
-                        opcode,))
+                    dwarf_assert(False, f'Invalid standard line program opcode: {opcode}')
             offset = self.stream.tell()
         return entries

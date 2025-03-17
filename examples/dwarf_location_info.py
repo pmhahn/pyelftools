@@ -62,7 +62,7 @@ def process_file(filename):
             # computed attributes (such as its offset in the section) and
             # a header which conforms to the DWARF standard. The access to
             # header elements is, as usual, via item-lookup.
-            print('  Found a compile unit at offset %s, length %s' % (
+            print('  Found a compile unit at offset {}, length {}'.format(
                 CU.cu_offset, CU['unit_length']))
 
             # A CU provides a simple API to iterate over all the DIEs in it.
@@ -73,7 +73,7 @@ def process_file(filename):
                 for attr in DIE.attributes.values():
                     # Check if this attribute contains location information
                     if loc_parser.attribute_has_location(attr, CU['version']):
-                        print('   DIE %s. attr %s.' % (DIE.tag, attr.name))
+                        print(f'   DIE {DIE.tag}. attr {attr.name}.')
                         loc = loc_parser.parse_from_attribute(attr,
                                                               CU['version'], DIE)
                         # We either get a list (in case the attribute is a
@@ -81,8 +81,7 @@ def process_file(filename):
                         # object (in case the attribute itself contains location
                         # information).
                         if isinstance(loc, LocationExpr):
-                            print('      %s' % (
-                                describe_DWARF_expr(loc.loc_expr,
+                            print('      {}'.format(describe_DWARF_expr(loc.loc_expr,
                                                     dwarfinfo.structs, CU.cu_offset)))
                         elif isinstance(loc, list):
                             print(show_loclist(loc,
@@ -96,9 +95,7 @@ def show_loclist(loclist, dwarfinfo, indent, cu_offset):
     d = []
     for loc_entity in loclist:
         if isinstance(loc_entity, LocationEntry):
-            d.append('%s <<%s>>' % (
-                loc_entity,
-                describe_DWARF_expr(loc_entity.loc_expr, dwarfinfo.structs, cu_offset)))
+            d.append(f'{loc_entity} <<{describe_DWARF_expr(loc_entity.loc_expr, dwarfinfo.structs, cu_offset)}>>')
         else:
             d.append(str(loc_entity))
     return '\n'.join(indent + s for s in d)

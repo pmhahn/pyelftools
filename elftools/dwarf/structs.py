@@ -586,5 +586,4 @@ class _InitialLengthAdapter(Adapter):
                 context['is64'] = True
                 return obj.second
             else:
-                raise ConstructError("Failed decoding initial length for %X" % (
-                    obj.first))
+                raise ConstructError(f"Failed decoding initial length for {obj.first:X}")

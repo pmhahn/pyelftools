@@ -111,7 +111,7 @@ def _generate_dynamic_values(map: dict[str, int], prefix: str, index_start: int,
         [index_start, index_end]. The values start at value_start.
     """
     for index in range(index_start, index_end + 1):
-        name = '%s%s' % (prefix, index)
+        name = f'{prefix}{index}'
         value = value_start + index - index_start
         map[name] = value
 
@@ -160,7 +160,7 @@ class DWARFExprParser:
 
             # Decode the opcode and its name.
             op = ord(byte)
-            op_name = DW_OP_opcode2name.get(op, 'OP:0x%x' % op)
+            op_name = DW_OP_opcode2name.get(op, f'OP:0x{op:x}')
 
             # Use dispatch table to parse args.
             arg_parser = self._dispatch_table[op]
@@ -255,9 +255,9 @@ def _init_dispatch_table(structs: DWARFStructs) -> dict[int, Callable[[IO[bytes]
         add(opname, parse_noargs())
 
     for n in range(0, 32):
-        add('DW_OP_lit%s' % n, parse_noargs())
-        add('DW_OP_reg%s' % n, parse_noargs())
-        add('DW_OP_breg%s' % n, parse_arg_struct(structs.the_Dwarf_sleb128))
+        add(f'DW_OP_lit{n}', parse_noargs())
+        add(f'DW_OP_reg{n}', parse_noargs())
+        add(f'DW_OP_breg{n}', parse_arg_struct(structs.the_Dwarf_sleb128))
 
     add('DW_OP_fbreg', parse_arg_struct(structs.the_Dwarf_sleb128))
     add('DW_OP_regx', parse_arg_struct(structs.the_Dwarf_uleb128))

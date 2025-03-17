@@ -30,7 +30,7 @@ def process_file(filename):
 
         dwarfinfo = elffile.get_dwarf_info()
         for CU in dwarfinfo.iter_CUs():
-            print('  Found a compile unit at offset %s, length %s' % (
+            print('  Found a compile unit at offset {}, length {}'.format(
                 CU.cu_offset, CU['unit_length']))
 
             # Every compilation unit in the DWARF information may or may not

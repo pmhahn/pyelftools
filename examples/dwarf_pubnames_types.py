@@ -44,13 +44,12 @@ def process_file(filename):
                         (name, entry.cu_ofs, entry.die_ofs))
 
                 # get the actual CU/DIE that has this information.
-                print('Fetching the actual die for %s ...' % name)
+                print(f'Fetching the actual die for {name} ...')
                 for cu in dwarfinfo.iter_CUs():
                     if cu.cu_offset == entry.cu_ofs:
                         for die in cu.iter_DIEs():
                             if die.offset == entry.die_ofs:
-                                print('Die Name: %s' %
-                                        bytes2str(die.attributes['DW_AT_name'].value))
+                                print('Die Name: {}'.format(bytes2str(die.attributes['DW_AT_name'].value)))
 
             # dump all entries in .debug_pubnames section.
             print('Dumping .debug_pubnames table ...')
@@ -73,13 +72,12 @@ def process_file(filename):
                         (name, entry.cu_ofs, entry.die_ofs))
 
                 # get the actual CU/DIE that has this information.
-                print('Fetching the actual die for %s ...' % name)
+                print(f'Fetching the actual die for {name} ...')
                 for cu in dwarfinfo.iter_CUs():
                     if cu.cu_offset == entry.cu_ofs:
                         for die in cu.iter_DIEs():
                             if die.offset == entry.die_ofs:
-                                print('Die Name: %s' %
-                                        bytes2str(die.attributes['DW_AT_name'].value))
+                                print('Die Name: {}'.format(bytes2str(die.attributes['DW_AT_name'].value)))
                                 die_info_rec(die)
 
             # dump all entries in .debug_pubtypes section.
@@ -96,9 +94,9 @@ def die_info_rec(die, indent_level='    '):
     """ A recursive function for showing information about a DIE and its
         children.
     """
-    print(indent_level + 'DIE tag=%s, attrs=' % die.tag)
+    print(indent_level + f'DIE tag={die.tag}, attrs=')
     for name, val in die.attributes.items():
-        print(indent_level + '  %s = %s' % (name, val))
+        print(indent_level + f'  {name} = {val}')
     child_indent = indent_level + '  '
     for child in die.iter_children():
         die_info_rec(child, child_indent)

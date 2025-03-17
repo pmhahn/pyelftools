@@ -66,7 +66,7 @@ def describe_e_machine(x: str) -> str:
 
 
 def describe_e_version_numeric(x: str) -> str:
-    return '0x%x' % ENUM_E_VERSION[x]
+    return f'0x{ENUM_E_VERSION[x]:x}'
 
 
 def describe_p_type(x: int | str) -> str:
@@ -224,18 +224,18 @@ def describe_note(x: Container, machine: str) -> str:
                 _DESCR_NOTE_ABI_TAG_OS.get(n_desc['abi_os'], _unknown),
                 n_desc['abi_major'], n_desc['abi_minor'], n_desc['abi_tiny'])
         else:
-            desc = '\n   description data: %s ' % bytes2hex(x['n_descdata'])
+            desc = '\n   description data: {} '.format(bytes2hex(x['n_descdata']))
     elif x['n_type'] == 'NT_GNU_BUILD_ID':
-        desc = '\n    Build ID: %s' % (n_desc)
+        desc = f'\n    Build ID: {n_desc}'
     elif x['n_type'] == 'NT_GNU_GOLD_VERSION':
-        desc = '\n    Version: %s' % (n_desc)
+        desc = f'\n    Version: {n_desc}'
     elif x['n_type'] == 'NT_GNU_PROPERTY_TYPE_0':
         if x['n_name'] == 'GNU':
             desc = '\n      Properties: ' + describe_note_gnu_properties(x['n_desc'], machine)
         else:
-            desc = '\n   description data: %s ' % bytes2hex(x['n_descdata'])
+            desc = '\n   description data: {} '.format(bytes2hex(x['n_descdata']))
     else:
-        desc = '\n      description data: {}'.format(bytes2hex(n_desc))
+        desc = f'\n      description data: {bytes2hex(n_desc)}'
 
     if x['n_type'] == 'NT_GNU_ABI_TAG' and x['n_name'] == 'Android':
         note_type = 'NT_VERSION'
@@ -243,14 +243,14 @@ def describe_note(x: Container, machine: str) -> str:
     else:
         note_type = (x['n_type'] if isinstance(x['n_type'], str)
                     else 'Unknown note type:')
-        note_type_desc = ('0x%.8x' % x['n_type']
+        note_type_desc = ('0x{:08x}'.format(x['n_type'])
                         if isinstance(x['n_type'], int) else
                         _DESCR_NOTE_N_TYPE.get(x['n_type'], _unknown))
-    return '%s (%s)%s' % (note_type, note_type_desc, desc)
+    return f'{note_type} ({note_type_desc}){desc}'
 
 
 def describe_attr_tag_arm(tag: str, val: Any, extra: str | None) -> str:
-    s = _DESCR_ATTR_TAG_ARM.get(tag, '"%s"' % tag)
+    s = _DESCR_ATTR_TAG_ARM.get(tag, f'"{tag}"')
     idx = ENUM_ATTR_TAG_ARM[tag] - 1
     d_entry = _DESCR_ATTR_VAL_ARM[idx]
 
@@ -269,7 +269,7 @@ def describe_attr_tag_arm(tag: str, val: Any, extra: str | None) -> str:
         elif tag == 'TAG_NODEFAULTS':
             return s + 'True'
 
-        s += '"%s"' % val if val else ''
+        s += f'"{val}"' if val else ''
         return s
 
     else:
@@ -281,7 +281,7 @@ def describe_attr_tag_riscv(tag: str, val: Any, extra: str) -> str:
 
     if d_entry is None:
         s = _DESCR_ATTR_TAG_RISCV[tag]
-        s += '"%s"' % val if val else ''
+        s += f'"{val}"' if val else ''
         return s
 
     else:
@@ -292,7 +292,7 @@ def describe_note_gnu_property_bitmap_and(values: Iterable[tuple[int, str]], pre
     for mask, desc in values:
         if value & mask:
             descs.append(desc)
-    return '%s: %s' % (prefix, ', '.join(descs))
+    return '{}: {}'.format(prefix, ', '.join(descs))
 
 def describe_note_gnu_properties(properties: list[Container], machine: str) -> str:
     descriptions = []
@@ -302,51 +302,51 @@ def describe_note_gnu_properties(properties: list[Container], machine: str) -> s
         sz: int = prop.pr_datasz
         if t == 'GNU_PROPERTY_STACK_SIZE':
             if isinstance(d, int):
-                prop_desc = 'stack size: 0x%x' % d
+                prop_desc = f'stack size: 0x{d:x}'
             else:
-                prop_desc = 'stack size: <corrupt length: 0x%x>' % sz
+                prop_desc = f'stack size: <corrupt length: 0x{sz:x}>'
         elif t == 'GNU_PROPERTY_NO_COPY_ON_PROTECTED':
             if sz != 0:
-                prop_desc = ' <corrupt length: 0x%x>' % sz
+                prop_desc = f' <corrupt length: 0x{sz:x}>'
             else:
                 prop_desc = 'no copy on protected'
         elif t == 'GNU_PROPERTY_X86_FEATURE_1_AND':
             if sz != 4:
-                prop_desc = ' <corrupt length: 0x%x>' % sz
+                prop_desc = f' <corrupt length: 0x{sz:x}>'
             else:
                 prop_desc = describe_note_gnu_property_bitmap_and(_DESCR_NOTE_GNU_PROPERTY_X86_FEATURE_1_FLAGS, 'x86 feature', d)
         elif t == 'GNU_PROPERTY_X86_FEATURE_2_USED':
             if sz != 4:
-                prop_desc = ' <corrupt length: 0x%x>' % sz
+                prop_desc = f' <corrupt length: 0x{sz:x}>'
             else:
                 prop_desc = describe_note_gnu_property_bitmap_and(_DESCR_NOTE_GNU_PROPERTY_X86_FEATURE_2_FLAGS, 'x86 feature used', d)                
         elif t == 'GNU_PROPERTY_X86_ISA_1_NEEDED':
             if sz != 4:
-                prop_desc = ' <corrupt length: 0x%x>' % sz
+                prop_desc = f' <corrupt length: 0x{sz:x}>'
             else:
                 prop_desc = describe_note_gnu_property_bitmap_and(_DESCR_NOTE_GNU_PROPERTY_X86_ISA_1_FLAGS, 'x86 ISA needed', d)
         elif t == 'GNU_PROPERTY_X86_ISA_1_USED':
             if sz != 4:
-                prop_desc = ' <corrupt length: 0x%x>' % sz
+                prop_desc = f' <corrupt length: 0x{sz:x}>'
             else:
                 prop_desc = describe_note_gnu_property_bitmap_and(_DESCR_NOTE_GNU_PROPERTY_X86_ISA_1_FLAGS, 'x86 ISA used', d)
         elif t == 'GNU_PROPERTY_AARCH64_FEATURE_1_AND' and machine == 'EM_AARCH64':
             if sz != 4:
-                prop_desc = ' <corrupt length: 0x%x>' % sz
+                prop_desc = f' <corrupt length: 0x{sz:x}>'
             else:
                 prop_desc = describe_note_gnu_property_bitmap_and(_DESCR_NOTE_GNU_PROPERTY_AARCH64_FEATURE_1_AND, 'aarch64 feature', d)
         elif t == 'GNU_PROPERTY_AARCH64_FEATURE_1_AND' and machine == 'EM_RISCV':
             # RISC-V shares the same bit-mask with AArch64
             if sz != 4:
-                prop_desc = ' <corrupt length: 0x%x>' % sz
+                prop_desc = f' <corrupt length: 0x{sz:x}>'
             else:
                 prop_desc = describe_note_gnu_property_bitmap_and(_DESCR_NOTE_GNU_PROPERTY_RISCV_FEATURE_1_AND, 'RISC-V AND feature', d)
         elif isinstance(t, int) and _DESCR_NOTE_GNU_PROPERTY_TYPE_LOPROC <= t <= _DESCR_NOTE_GNU_PROPERTY_TYPE_HIPROC:
-            prop_desc = '<processor-specific type 0x%x data: %s >' % (t, bytes2hex(d, sep=' '))
+            prop_desc = '<processor-specific type 0x{:x} data: {} >'.format(t, bytes2hex(d, sep=' '))
         elif isinstance(t, int) and _DESCR_NOTE_GNU_PROPERTY_TYPE_LOUSER <= t <= _DESCR_NOTE_GNU_PROPERTY_TYPE_HIUSER:
-            prop_desc = '<application-specific type 0x%x data: %s >' % (t, bytes2hex(d, sep=' '))
+            prop_desc = '<application-specific type 0x{:x} data: {} >'.format(t, bytes2hex(d, sep=' '))
         else:
-            prop_desc = '<unknown type 0x%x data: %s >' % (t, bytes2hex(d, sep=' '))
+            prop_desc = '<unknown type 0x{:x} data: {} >'.format(t, bytes2hex(d, sep=' '))
         descriptions.append(prop_desc)
     return '\n        '.join(descriptions)
 

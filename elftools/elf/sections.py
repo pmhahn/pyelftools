@@ -103,13 +103,13 @@ class Section:
                 result = decomp.decompress(compressed, self.data_size)
             else:
                 raise ELFCompressionError(
-                    'Unknown compression type: {:#0x}'.format(c_type)
+                    f'Unknown compression type: {c_type:#0x}'
                 )
 
             if len(result) != self._decompressed_size:
                 raise ELFCompressionError(
-                    'Decompressed data is {} bytes long, should be {} bytes'
-                    ' long'.format(len(result), self._decompressed_size)
+                    f'Decompressed data is {len(result)} bytes long, should be {self._decompressed_size} bytes'
+                    ' long'
                 )
         else:
             self.stream.seek(self['sh_offset'])
@@ -189,9 +189,9 @@ class SymbolTableSection(Section):
         super().__init__(header, name, elffile)
         self.stringtable = stringtable
         elf_assert(self['sh_entsize'] > 0,
-                'Expected entry size of section %r to be > 0' % name)
+                f'Expected entry size of section {name!r} to be > 0')
         elf_assert(self['sh_size'] % self['sh_entsize'] == 0,
-                'Expected section size to be a multiple of entry size in section %r' % name)
+                f'Expected section size to be a multiple of entry size in section {name!r}')
         self._symbol_name_map: dict[str, list[int]] | None = None
 
     def num_symbols(self) -> int:
@@ -334,9 +334,8 @@ class Attribute:
         return self._tag['tag']
 
     def __repr__(self) -> str:
-        s = '<%s (%s): %r>' % \
-            (self.__class__.__name__, self.tag, self.value)
-        s += ' %s' % self.extra if self.extra is not None else ''
+        s = f'<{self.__class__.__name__} ({self.tag}): {self.value!r}>'
+        s += f' {self.extra}' if self.extra is not None else ''
         return s
 
 
@@ -461,7 +460,7 @@ class AttributesSection(Section):
                           self['sh_offset'])
 
         elf_assert(chr(fv) == 'A',
-                   "Unknown attributes version %s, expecting 'A'." % chr(fv))
+                   f"Unknown attributes version {chr(fv)}, expecting 'A'.")
 
         self.subsec_start = self.stream.tell()
 
@@ -539,7 +538,7 @@ class ARMAttribute(Attribute):
             if type(self.value.value) is not str:
                 nul = struct_parse(structs.Elf_byte('nul'), stream)
                 elf_assert(nul == 0,
-                           "Invalid terminating byte %r, expecting NUL." % nul)
+                           f"Invalid terminating byte {nul!r}, expecting NUL.")
 
         else:
             self.value = struct_parse(structs.Elf_uleb128('value'), stream)

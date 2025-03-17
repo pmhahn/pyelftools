@@ -42,14 +42,13 @@ class TestCacheLUTandDIEref(unittest.TestCase):
                     self.dprint(ndie)
                     ttag = tdie.tag
                     if isinstance(ttag, int):
-                        ttag = 'TAG(0x%x)' % ttag
+                        ttag = f'TAG(0x{ttag:x})'
                     tlist.append(ttag)
                     if 'DW_AT_name' in tdie.attributes:
                         break
                 tlist.append(bytes2str(tdie.attributes['DW_AT_name'].value))
                 tname = ' '.join(tlist)
-                line = "%s DIE at %s is of type %s" % (
-                        ndie.tag, ndie.offset, tname)
+                line = f"{ndie.tag} DIE at {ndie.offset} is of type {tname}"
                 lines.append(line)
                 self.dprint(line)
 

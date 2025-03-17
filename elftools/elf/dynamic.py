@@ -74,14 +74,14 @@ class DynamicTag:
         return self.entry[name]
 
     def __repr__(self) -> str:
-        return '<DynamicTag (%s): %r>' % (self.entry.d_tag, self.entry)
+        return f'<DynamicTag ({self.entry.d_tag}): {self.entry!r}>'
 
     def __str__(self) -> str:
         if self.entry.d_tag in self._HANDLED_TAGS:
-            s = '"%s"' % getattr(self, self.entry.d_tag[3:].lower())
+            s = f'"{getattr(self, self.entry.d_tag[3:].lower())}"'
         else:
-            s = '%#x' % self.entry.d_ptr
-        return '<DynamicTag (%s) %s>' % (self.entry.d_tag, s)
+            s = f'{self.entry.d_ptr:#x}'
+        return f'<DynamicTag ({self.entry.d_tag}) {s}>'
 
 
 class Dynamic:
@@ -222,7 +222,7 @@ class Dynamic:
 
             relentsz = next(self.iter_tags('DT_RELENT'))['d_val']
             elf_assert(rel.entry_size == relentsz,
-                'Expected DT_RELENT to be %s' % relentsz)
+                f'Expected DT_RELENT to be {relentsz}')
 
         if list(self.iter_tags('DT_RELA')):
             result['RELA'] = rela = RelocationTable(self.elffile,
@@ -231,7 +231,7 @@ class Dynamic:
 
             relentsz = next(self.iter_tags('DT_RELAENT'))['d_val']
             elf_assert(rela.entry_size == relentsz,
-                'Expected DT_RELAENT to be %s' % relentsz)
+                f'Expected DT_RELAENT to be {relentsz}')
 
         if list(self.iter_tags('DT_RELR')):
             result['RELR'] = RelrRelocationTable(self.elffile,

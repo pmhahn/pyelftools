@@ -53,7 +53,7 @@ def run_test_on_file(filename, verbose=False, opt=None):
         run for one option.
     """
     success = True
-    testlog.info("Test file '%s'" % filename)
+    testlog.info(f"Test file '{filename}'")
     if opt is None:
         options = [
             '--debug-info'
@@ -62,33 +62,33 @@ def run_test_on_file(filename, verbose=False, opt=None):
         options = [opt]
 
     for option in options:
-        if verbose: testlog.info("..option='%s'" % option)
+        if verbose: testlog.info(f"..option='{option}'")
 
         # stdouts will be a 2-element list: output of llvm-dwarfdump and output
         # of scripts/dwarfdump.py
         stdouts = []
         for exe_path in [DWARFDUMP_PATH, 'scripts/dwarfdump.py']:
             args = [option, '--verbose', filename]
-            if verbose: testlog.info("....executing: '%s %s'" % (
+            if verbose: testlog.info("....executing: '{} {}'".format(
                 exe_path, ' '.join(args)))
             t1 = time.time()
             rc, stdout = run_exe(exe_path, args)
-            if verbose: testlog.info("....elapsed: %s" % (time.time() - t1,))
+            if verbose: testlog.info(f"....elapsed: {time.time() - t1}")
             if rc != 0:
-                testlog.error("@@ aborting - '%s %s' returned '%s'" % (exe_path, option, rc))
+                testlog.error(f"@@ aborting - '{exe_path} {option}' returned '{rc}'")
                 return False
             stdouts.append(stdout)
         if verbose: testlog.info('....comparing output...')
         t1 = time.time()
         rc, errmsg = compare_output(*stdouts)
-        if verbose: testlog.info("....elapsed: %s" % (time.time() - t1,))
+        if verbose: testlog.info(f"....elapsed: {time.time() - t1}")
         if rc:
             if verbose: testlog.info('.......................SUCCESS')
         else:
             success = False
             testlog.info('.......................FAIL')
-            testlog.info('....for file %s' % filename)
-            testlog.info('....for option "%s"' % option)
+            testlog.info(f'....for file {filename}')
+            testlog.info(f'....for option "{option}"')
             testlog.info('....Output #1 is llvm-dwarfdump, Output #2 is pyelftools')
             testlog.info('@@ ' + errmsg)
             dump_output_to_temp_files(testlog, filename, option, *stdouts)
@@ -114,8 +114,7 @@ def compare_output(s1, s2):
     lines2 = prepare_lines(s2)
 
     if len(lines1) != len(lines2):
-        return False, 'Number of lines different: %s vs %s' % (
-                len(lines1), len(lines2))
+        return False, f'Number of lines different: {len(lines1)} vs {len(lines2)}'
 
     for (i, (line1, line2)) in enumerate(zip(lines1, lines2)):
         # Compare ignoring whitespace
@@ -127,8 +126,7 @@ def compare_output(s1, s2):
             sm.set_seqs(lines1[i], lines2[i])
             changes = sm.get_opcodes()
 
-            errmsg = 'Mismatch on line #%s:\n>>%s<<\n>>%s<<\n (%r)' % (
-                i, line1, line2, changes)
+            errmsg = f'Mismatch on line #{i}:\n>>{line1}<<\n>>{line2}<<\n ({changes!r})'
             return False, errmsg
     return True, ''
 
@@ -162,9 +160,9 @@ def main():
 
     if args.verbose:
         testlog.info('Running in verbose mode')
-        testlog.info('Python executable = %s' % sys.executable)
-        testlog.info('dwarfdump path = %s' % DWARFDUMP_PATH)
-        testlog.info('Given list of files: %s' % args.files)
+        testlog.info(f'Python executable = {sys.executable}')
+        testlog.info(f'dwarfdump path = {DWARFDUMP_PATH}')
+        testlog.info(f'Given list of files: {args.files}')
 
     # If file names are given as command-line arguments, only these files
     # are taken as inputs. Otherwise, autodiscovery is performed.
@@ -189,8 +187,7 @@ def main():
         testlog.info('\nConclusion: SUCCESS')
         return 0
     elif args.keep_going:
-        testlog.info('\nConclusion: FAIL ({}/{})'.format(
-            failures, len(filenames)))
+        testlog.info(f'\nConclusion: FAIL ({failures}/{len(filenames)})')
         return 1
     else:
         testlog.info('\nConclusion: FAIL')
