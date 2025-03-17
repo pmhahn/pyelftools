@@ -334,7 +334,7 @@ class Attribute:
         return self._tag['tag']
 
     def __repr__(self) -> str:
-        s = f'<{self.__class__.__name__} ({self.tag}): {self.value!r}>'
+        s = f'<{self.__class__.__name__} ({self.tag}): {getattr(self, "value", None)!r}>'
         s += f' {self.extra}' if self.extra is not None else ''
         return s
 

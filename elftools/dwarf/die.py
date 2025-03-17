@@ -225,7 +225,7 @@ class DIE:
     def __repr__(self) -> str:
         s = f'DIE {self.tag}, size={self.size}, has_children={self.has_children}\n'
         for attrname, attrval in self.attributes.items():
-            s += '    |%-18s:  %s\n' % (attrname, attrval)
+            s += f'    |{attrname:<18}:  {attrval}\n'
         return s
 
     def __str__(self) -> str:

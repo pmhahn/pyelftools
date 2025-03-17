@@ -222,7 +222,7 @@ def _init_dispatch_table(structs: DWARFStructs) -> dict[int, Callable[[IO[bytes]
             elif op == 3:
                 return [op, struct_parse(structs.the_Dwarf_uint32, stream)]
             else:
-                raise DWARFError("Unknown operation code in DW_OP_WASM_location: %d" % (op,))
+                raise DWARFError(f"Unknown operation code in DW_OP_WASM_location: {op}")
         return parse
 
     add('DW_OP_addr', parse_op_addr())

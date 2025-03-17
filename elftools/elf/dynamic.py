@@ -80,7 +80,7 @@ class DynamicTag:
         if self.entry.d_tag in self._HANDLED_TAGS:
             s = f'"{getattr(self, self.entry.d_tag[3:].lower())}"'
         else:
-            s = f'{self.entry.d_ptr:#x}'
+            s = f'{self.entry.d_ptr:x}'
         return f'<DynamicTag ({self.entry.d_tag}) {s}>'
 
 
@@ -315,8 +315,7 @@ class DynamicSegment(Segment, Dynamic):
                     if self._symbol_size != tag['d_val']:
                         # DT_SYMENT is the size of one symbol entry. It must be
                         # the same as returned by Elf_Sym.sizeof.
-                        raise ELFError('DT_SYMENT (%d) != Elf_Sym (%d).' %
-                                       (tag['d_val'], self._symbol_size))
+                        raise ELFError(f"DT_SYMENT ({tag['d_val']}) != Elf_Sym ({self._symbol_size}).")
                 if (tag_ptr > tab_ptr and
                         (nearest_ptr is None or nearest_ptr > tag_ptr)):
                     nearest_ptr = tag_ptr

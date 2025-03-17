@@ -45,9 +45,7 @@ class Relocation:
         return self.entry[name]
 
     def __repr__(self) -> str:
-        return '<Relocation ({}): {}>'.format(
-                'RELA' if self.is_RELA() else 'REL',
-                self.entry)
+        return f'<Relocation ({"RELA" if self.is_RELA() else "REL"}): {self.entry}>'
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -110,8 +108,7 @@ class RelocationSection(Section, RelocationTable):
         elf_assert(header['sh_type'] in ('SHT_REL', 'SHT_RELA'),
             'Unknown relocation type section')
         elf_assert(header['sh_entsize'] == self.entry_size,
-            'Expected sh_entsize of {} section to be {}'.format(
-                header['sh_type'], self.entry_size))
+            f"Expected sh_entsize of {header['sh_type']} section to be {self.entry_size}")
 
 
 class RelrRelocationTable:
@@ -286,7 +283,7 @@ class RelocationHandler:
         # All peppered with some sanity checking.
         if reloc['r_info_sym'] >= symtab.num_symbols():
             raise ELFRelocationError(
-                'Invalid symbol reference in relocation: index {}'.format(reloc['r_info_sym']))
+                f"Invalid symbol reference in relocation: index {reloc['r_info_sym']}")
         sym_value = symtab.get_symbol(reloc['r_info_sym'])['st_value']
 
         reloc_type = reloc['r_info_type']

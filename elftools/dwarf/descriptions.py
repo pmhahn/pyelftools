@@ -77,9 +77,7 @@ def describe_CFI_instructions(entry: CFIEntry) -> str:
         if name in ('DW_CFA_offset',
                     'DW_CFA_offset_extended', 'DW_CFA_offset_extended_sf',
                     'DW_CFA_val_offset', 'DW_CFA_val_offset_sf'):
-            s += '  %s: %s at cfa%+d\n' % (
-                name, _full_reg_name(instr.args[0]),
-                instr.args[1] * cie['data_alignment_factor'])
+            s += f"  {name}: {_full_reg_name(instr.args[0])} at cfa{instr.args[1] * cie['data_alignment_factor']:+}\n"
         elif name in (  'DW_CFA_restore', 'DW_CFA_restore_extended',
                         'DW_CFA_undefined', 'DW_CFA_same_value',
                         'DW_CFA_def_cfa_register'):
@@ -102,14 +100,12 @@ def describe_CFI_instructions(entry: CFIEntry) -> str:
         elif name == 'DW_CFA_def_cfa':
             s += f'  {name}: {_full_reg_name(instr.args[0])} ofs {instr.args[1]}\n'
         elif name == 'DW_CFA_def_cfa_sf':
-            s += '  {}: {} ofs {}\n'.format(
-                name, _full_reg_name(instr.args[0]),
-                instr.args[1] * cie['data_alignment_factor'])
+            s += f"  {name}: {_full_reg_name(instr.args[0])} ofs {instr.args[1] * cie['data_alignment_factor']}\n"
         elif name in ('DW_CFA_def_cfa_offset', 'DW_CFA_GNU_args_size'):
             s += f'  {name}: {instr.args[0]}\n'
         elif name == 'DW_CFA_def_cfa_offset_sf':
             assert entry.cie is not None
-            s += '  {}: {}\n'.format(name, instr.args[0]*entry.cie['data_alignment_factor'])
+            s += f"  {name}: {instr.args[0] * entry.cie['data_alignment_factor']}\n"
         elif name == 'DW_CFA_def_cfa_expression':
             expr_dumper = ExprDumper(entry.structs)
             # readelf output is missing a colon for DW_CFA_def_cfa_expression
@@ -126,7 +122,7 @@ def describe_CFI_instructions(entry: CFIEntry) -> str:
 def describe_CFI_register_rule(rule: RegisterRule) -> str:
     s = _DESCR_CFI_REGISTER_RULE_TYPE[rule.type]
     if rule.type in ('OFFSET', 'VAL_OFFSET'):
-        s += '%+d' % rule.arg
+        s += f'{rule.arg:+}'
     elif rule.type == 'REGISTER':
         assert isinstance(rule.arg, int)
         reg = describe_reg_name(rule.arg)
@@ -140,7 +136,7 @@ def describe_CFI_CFA_rule(rule: CFARule) -> str:
         return 'exp'
     else:
         assert isinstance(rule.reg, int)
-        return '%s%+d' % (describe_reg_name(rule.reg), rule.offset)
+        return f'{describe_reg_name(rule.reg)}{rule.offset:+}'
 
 
 def describe_DWARF_expr(expr: Any, structs: DWARFStructs, cu_offset: int | None = None) -> str:
@@ -659,21 +655,21 @@ class ExprDumper:
         elif opcode_name in self._ops_with_two_decimal_args:
             return f'{opcode_name}: {args[0]} {args[1]}'
         elif opcode_name in ('DW_OP_GNU_entry_value', 'DW_OP_entry_value'):
-            return '{}: ({})'.format(opcode_name, ','.join([self._dump_to_string(deo.op, deo.op_name, deo.args, cu_offset) for deo in args[0]]))
+            return f"{opcode_name}: ({','.join(self._dump_to_string(deo.op, deo.op_name, deo.args, cu_offset) for deo in args[0])})"
         elif opcode_name == 'DW_OP_implicit_value':
-            return "{} {} byte block: {}".format(opcode_name, len(args[0]), ''.join([f"{b:x} " for b in args[0]]))
+            return f"{opcode_name} {len(args[0])} byte block: {''.join([f'{b:x} ' for b in args[0]])}"
         elif opcode_name == 'DW_OP_GNU_parameter_ref':
             return f"{opcode_name}: <0x{args[0] + cu_offset:x}>"
         elif opcode_name in ('DW_OP_GNU_implicit_pointer', 'DW_OP_implicit_pointer'):
-            return "%s: <0x%x> %d" % (opcode_name, args[0], args[1])
+            return f"{opcode_name}: <0x{args[0]:x}> {args[1]}"
         elif opcode_name in ('DW_OP_GNU_convert', 'DW_OP_convert'):
             return f"{opcode_name} <0x{args[0] + cu_offset:x}>"
         elif opcode_name in ('DW_OP_GNU_deref_type', 'DW_OP_deref_type'):
-            return "%s: %d <0x%x>" % (opcode_name, args[0], args[1] + cu_offset)
+            return f"{opcode_name}: {args[0]} <0x{args[1] + cu_offset:x}>"
         elif opcode_name in ('DW_OP_GNU_const_type', 'DW_OP_const_type'):
-            return "%s: <0x%x>  %d byte block: %s " % (opcode_name, args[0] + cu_offset, len(args[1]), ' '.join(f"{b:x}" for b in args[1]))
+            return f"{opcode_name}: <0x{args[0] + cu_offset:x}>  {len(args[1])} byte block: {' '.join(f'{b:x}' for b in args[1])} "
         elif opcode_name in ('DW_OP_GNU_regval_type', 'DW_OP_regval_type'):
-            return "%s: %d (%s) <0x%x>" % (opcode_name, args[0], describe_reg_name(args[0], _MACHINE_ARCH), args[1] + cu_offset)
+            return f"{opcode_name}: {args[0]} ({describe_reg_name(args[0], _MACHINE_ARCH)}) <0x{args[1] + cu_offset:x}>"
         elif opcode_name == 'DW_OP_bit_piece':
             return f'{opcode_name}: size: {args[0]} offset: {args[1]}'
         else:

@@ -42,8 +42,7 @@ def process_file(filename):
             # computed attributes (such as its offset in the section) and
             # a header which conforms to the DWARF standard. The access to
             # header elements is, as usual, via item-lookup.
-            print('  Found a compile unit at offset {}, length {}'.format(
-                CU.cu_offset, CU['unit_length']))
+            print(f"  Found a compile unit at offset {CU.cu_offset}, length {CU['unit_length']}")
 
             # A CU provides a simple API to iterate over all the DIEs in it.
             for DIE in CU.iter_DIEs():

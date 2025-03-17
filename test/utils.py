@@ -41,7 +41,7 @@ def dump_output_to_temp_files(testlog, filename, option, *args):
     """
     for i, s in enumerate(args):
         fd, path = tempfile.mkstemp(
-                prefix='out-%d-%s-%s-' % (i + 1, os.path.split(filename)[-1], option),
+                prefix=f'out-{i + 1}-{os.path.split(filename)[-1]}-{option}-',
                 suffix='.stdout')
         file = os.fdopen(fd, 'w')
         file.write(s)

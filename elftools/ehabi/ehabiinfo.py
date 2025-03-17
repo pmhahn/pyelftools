@@ -55,7 +55,7 @@ class EHABIInfo:
         """ Get the exception handler entry at index #n. (EHABIEntry object or a subclass)
         """
         if n >= self.num_entry():
-            raise IndexError('Invalid entry %d/%d' % (n, self._num_entry))
+            raise IndexError(f'Invalid entry {n}/{self._num_entry}')
         eh_index_entry_offset = self.section_offset() + n * EHABI_INDEX_ENTRY_SIZE
         eh_index_data = struct_parse(self._struct.EH_index_struct, self._arm_idx_section.stream, eh_index_entry_offset)
         word0, word1 = eh_index_data['word0'], eh_index_data['word1']
@@ -99,7 +99,7 @@ class EHABIInfo:
                         opcode.append((r >> 0) & 0xFF)
                     return EHABIEntry(function_offset, per_index, opcode, eh_table_offset=eh_table_offset)
                 else:
-                    return CorruptEHABIEntry('Unknown ARM compact model %d at table entry: %x' % (per_index, n))
+                    return CorruptEHABIEntry(f'Unknown ARM compact model {per_index} at table entry: {n:x}')
         else:
             # highest bit is one, compact model must be 0
             if word1 & 0x7f000000 != 0:
@@ -161,11 +161,14 @@ class EHABIEntry:
             return None
 
     def __repr__(self) -> str:
-        return "<EHABIEntry function_offset=0x%x, personality=%d, %sbytecode=%s>" % (
-            self.function_offset,
-            self.personality,
-            f"eh_table_offset=0x{self.eh_table_offset:x}, " if self.eh_table_offset else "",
-            self.bytecode_array)
+        return (
+            "<EHABIEntry"
+            f" function_offset=0x{self.function_offset:x}"
+            f", personality={self.personality}"
+            f'{f", eh_table_offset=0x{self.eh_table_offset:x}" if self.eh_table_offset else ""}'
+            f", bytecode={self.bytecode_array}"
+            ">"
+        )
 
 
 class CorruptEHABIEntry(EHABIEntry):

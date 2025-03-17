@@ -27,8 +27,7 @@ def process_file(filename):
             for CU in dwarfinfo.iter_CUs():
                 # cu_offset is a public attribute of CU
                 # address_size is part of the CU header
-                print('  CU at offset 0x{:x}. address_size is {}'.format(
-                    CU.cu_offset, CU['address_size']))
+                print(f"  CU at offset 0x{CU.cu_offset:x}. address_size is {CU['address_size']}")
 
 
 if __name__ == '__main__':

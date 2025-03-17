@@ -33,7 +33,7 @@ def section_info_lowlevel(stream):
     elffile = ELFFile(stream)
 
     # The e_shnum ELF header field says how many sections there are in a file
-    print('  {} sections'.format(elffile['e_shnum']))
+    print(f"  {elffile['e_shnum']} sections")
 
     # Try to find the symbol table
     for i in range(elffile['e_shnum']):
@@ -47,8 +47,7 @@ def section_info_lowlevel(stream):
             # here. To get to the actual name one would need to parse the string
             # table section and extract the name from there (or use the
             # high-level API!)
-            print('  Section name: {}, type: {}'.format(
-                    section_header['sh_name'], section_header['sh_type']))
+            print(f"  Section name: {section_header['sh_name']}, type: {section_header['sh_type']}")
             break
     else:
         print('  No symbol table found. Perhaps this ELF has been stripped?')
@@ -69,8 +68,7 @@ def section_info_highlevel(stream):
 
     # A section type is in its header, but the name was decoded and placed in
     # a public attribute.
-    print('  Section name: {}, type: {}'.format(
-        section.name, section['sh_type']))
+    print(f"  Section name: {section.name}, type: {section['sh_type']}")
 
     # But there's more... If this section is a symbol table section (which is
     # the case in the sample ELF file that comes with the examples), we can

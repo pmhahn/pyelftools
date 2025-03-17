@@ -289,7 +289,7 @@ class CallFrameInfo:
         # Augmentation parsing works in minimal mode here: we need the length
         # field to be able to skip unhandled augmentation fields.
         assert augmentation.startswith(b'z'), (
-            f'Unhandled augmentation string: {repr(augmentation)}')
+            f'Unhandled augmentation string: {augmentation!r}')
 
         available_fields: dict[bytes, Construct | Literal[True]] = {
             b'z': entry_structs.Dwarf_uleb128('length'),

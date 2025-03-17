@@ -172,7 +172,7 @@ class TypeDesc:
             parts.append("".join(cpp_symbols[mod] for mod in mods))
 
         if self.dimensions:
-            dims = "".join('[{}]'.format(str(dim) if dim > 0 else '')
+            dims = "".join(f'[{dim}]' if dim > 0 else '[]'
                 for dim in self.dimensions)
         else:
             dims = ''

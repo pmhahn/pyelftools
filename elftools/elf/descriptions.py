@@ -40,7 +40,7 @@ def describe_ei_data(x: str) -> str:
 
 
 def describe_ei_version(x: str) -> str:
-    s = '%d' % ENUM_E_VERSION[x]
+    s = str(ENUM_E_VERSION[x])
     if x == 'EV_CURRENT':
         s += ' (current)'
     return s
@@ -149,7 +149,7 @@ def describe_symbol_other(x: Container) -> str:
 
 
 def describe_symbol_shndx(x: int | str) -> str:
-    return _DESCR_ST_SHNDX.get(x, '%3s' % x)  # type: ignore[arg-type]
+    return _DESCR_ST_SHNDX.get(x, f'{x:3}')  # type: ignore[arg-type]
 
 
 def describe_reloc_type(x: int, elffile: ELFFile) -> str:
@@ -205,7 +205,7 @@ def describe_syminfo_flags(x: int) -> str:
 
 
 def describe_symbol_boundto(x: str) -> str:
-    return _DESCR_SYMINFO_BOUNDTO.get(x, '%3s' % x)
+    return _DESCR_SYMINFO_BOUNDTO.get(x, f'{x:3}')
 
 
 def describe_ver_flags(x: int) -> str:
@@ -220,11 +220,12 @@ def describe_note(x: Container, machine: str) -> str:
     desc = ''
     if x['n_type'] == 'NT_GNU_ABI_TAG':
         if x['n_name'] == 'GNU':
-            desc = '\n    OS: %s, ABI: %d.%d.%d' % (
-                _DESCR_NOTE_ABI_TAG_OS.get(n_desc['abi_os'], _unknown),
-                n_desc['abi_major'], n_desc['abi_minor'], n_desc['abi_tiny'])
+            desc = (
+                f"\n    OS: {_DESCR_NOTE_ABI_TAG_OS.get(n_desc['abi_os'], _unknown)}"
+                f", ABI: {n_desc['abi_major']}.{n_desc['abi_minor']}.{n_desc['abi_tiny']}"
+            )
         else:
-            desc = '\n   description data: {} '.format(bytes2hex(x['n_descdata']))
+            desc = f"\n   description data: {bytes2hex(x['n_descdata'])} "
     elif x['n_type'] == 'NT_GNU_BUILD_ID':
         desc = f'\n    Build ID: {n_desc}'
     elif x['n_type'] == 'NT_GNU_GOLD_VERSION':
@@ -233,7 +234,7 @@ def describe_note(x: Container, machine: str) -> str:
         if x['n_name'] == 'GNU':
             desc = '\n      Properties: ' + describe_note_gnu_properties(x['n_desc'], machine)
         else:
-            desc = '\n   description data: {} '.format(bytes2hex(x['n_descdata']))
+            desc = f"\n   description data: {bytes2hex(x['n_descdata'])} "
     else:
         desc = f'\n      description data: {bytes2hex(n_desc)}'
 
@@ -243,7 +244,7 @@ def describe_note(x: Container, machine: str) -> str:
     else:
         note_type = (x['n_type'] if isinstance(x['n_type'], str)
                     else 'Unknown note type:')
-        note_type_desc = ('0x{:08x}'.format(x['n_type'])
+        note_type_desc = (f"0x{x['n_type']:08x}"
                         if isinstance(x['n_type'], int) else
                         _DESCR_NOTE_N_TYPE.get(x['n_type'], _unknown))
     return f'{note_type} ({note_type_desc}){desc}'
@@ -256,15 +257,15 @@ def describe_attr_tag_arm(tag: str, val: Any, extra: str | None) -> str:
 
     if d_entry is None:
         if tag == 'TAG_COMPATIBILITY':
-            return s + 'flag = %d, vendor = %s' % (val, extra)
+            return s + f'flag = {val}, vendor = {extra}'
 
         elif tag == 'TAG_ALSO_COMPATIBLE_WITH':
             if val.tag == 'TAG_CPU_ARCH':
                 d_entry = _DESCR_ATTR_VAL_ARM[5]  # TAG_CPU_ARCH
-                return s + d_entry.get(val.value, '??? (%d)' % val.value)
+                return s + d_entry.get(val.value, f'??? ({val.value})')
 
             else:
-                return s + '??? (%d)' % val.tag
+                return s + f'??? ({val.tag})'
 
         elif tag == 'TAG_NODEFAULTS':
             return s + 'True'
@@ -292,7 +293,7 @@ def describe_note_gnu_property_bitmap_and(values: Iterable[tuple[int, str]], pre
     for mask, desc in values:
         if value & mask:
             descs.append(desc)
-    return '{}: {}'.format(prefix, ', '.join(descs))
+    return f'{prefix}: {", ".join(descs)}'
 
 def describe_note_gnu_properties(properties: list[Container], machine: str) -> str:
     descriptions = []
@@ -342,11 +343,11 @@ def describe_note_gnu_properties(properties: list[Container], machine: str) -> s
             else:
                 prop_desc = describe_note_gnu_property_bitmap_and(_DESCR_NOTE_GNU_PROPERTY_RISCV_FEATURE_1_AND, 'RISC-V AND feature', d)
         elif isinstance(t, int) and _DESCR_NOTE_GNU_PROPERTY_TYPE_LOPROC <= t <= _DESCR_NOTE_GNU_PROPERTY_TYPE_HIPROC:
-            prop_desc = '<processor-specific type 0x{:x} data: {} >'.format(t, bytes2hex(d, sep=' '))
+            prop_desc = f"<processor-specific type 0x{t:x} data: {bytes2hex(d, sep=' ')} >"
         elif isinstance(t, int) and _DESCR_NOTE_GNU_PROPERTY_TYPE_LOUSER <= t <= _DESCR_NOTE_GNU_PROPERTY_TYPE_HIUSER:
-            prop_desc = '<application-specific type 0x{:x} data: {} >'.format(t, bytes2hex(d, sep=' '))
+            prop_desc = f"<application-specific type 0x{t:x} data: {bytes2hex(d, sep=' ')} >"
         else:
-            prop_desc = '<unknown type 0x{:x} data: {} >'.format(t, bytes2hex(d, sep=' '))
+            prop_desc = f"<unknown type 0x{t:x} data: {bytes2hex(d, sep=' ')} >"
         descriptions.append(prop_desc)
     return '\n        '.join(descriptions)
 

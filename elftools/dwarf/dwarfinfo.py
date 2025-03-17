@@ -615,7 +615,7 @@ class DWARFInfo:
         cu_die_offset = self.debug_info_sec.stream.tell()
         dwarf_assert(
             self._is_supported_version(cu_header['version']),
-            "Expected supported DWARF version. Got '{}'".format(cu_header['version']))
+            f"Expected supported DWARF version. Got '{cu_header['version']}'")
         return CompileUnit(
                 header=cu_header,
                 dwarfinfo=self,
@@ -661,7 +661,7 @@ class DWARFInfo:
         tu_die_offset = self.debug_types_sec.stream.tell()
         dwarf_assert(
             self._is_supported_version(tu_header['version']),
-            "Expected supported DWARF version. Got '{}'".format(tu_header['version']))
+            f"Expected supported DWARF version. Got '{tu_header['version']}'")
         return TypeUnit(
             header=tu_header,
             dwarfinfo=self,

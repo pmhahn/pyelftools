@@ -62,8 +62,7 @@ def process_file(filename):
             # computed attributes (such as its offset in the section) and
             # a header which conforms to the DWARF standard. The access to
             # header elements is, as usual, via item-lookup.
-            print('  Found a compile unit at offset {}, length {}'.format(
-                CU.cu_offset, CU['unit_length']))
+            print(f"  Found a compile unit at offset {CU.cu_offset}, length {CU['unit_length']}")
 
             # A CU provides a simple API to iterate over all the DIEs in it.
             for DIE in CU.iter_DIEs():
@@ -81,8 +80,7 @@ def process_file(filename):
                         # object (in case the attribute itself contains location
                         # information).
                         if isinstance(loc, LocationExpr):
-                            print('      {}'.format(describe_DWARF_expr(loc.loc_expr,
-                                                    dwarfinfo.structs, CU.cu_offset)))
+                            print(f'      {describe_DWARF_expr(loc.loc_expr, dwarfinfo.structs, CU.cu_offset)}')
                         elif isinstance(loc, list):
                             print(show_loclist(loc,
                                                dwarfinfo,

@@ -69,8 +69,7 @@ def run_test_on_file(filename, verbose=False, opt=None):
         stdouts = []
         for exe_path in [DWARFDUMP_PATH, 'scripts/dwarfdump.py']:
             args = [option, '--verbose', filename]
-            if verbose: testlog.info("....executing: '{} {}'".format(
-                exe_path, ' '.join(args)))
+            if verbose: testlog.info(f"....executing: '{exe_path} {' '.join(args)}'")
             t1 = time.time()
             rc, stdout = run_exe(exe_path, args)
             if verbose: testlog.info(f"....elapsed: {time.time() - t1}")

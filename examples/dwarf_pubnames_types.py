@@ -36,12 +36,11 @@ def process_file(filename):
         if pubnames is None:
             print('ERROR: No .debug_pubnames section found in ELF.')
         else:
-            print('%d entries found in .debug_pubnames' % len(pubnames))
+            print(f'{len(pubnames)} entries found in .debug_pubnames')
 
             print('Trying pubnames example ...')
             for name, entry in pubnames.items():
-                print('%s: cu_ofs = %d, die_ofs = %d' %
-                        (name, entry.cu_ofs, entry.die_ofs))
+                print(f'{name}: cu_ofs = {entry.cu_ofs}, die_ofs = {entry.die_ofs}')
 
                 # get the actual CU/DIE that has this information.
                 print(f'Fetching the actual die for {name} ...')
@@ -49,15 +48,15 @@ def process_file(filename):
                     if cu.cu_offset == entry.cu_ofs:
                         for die in cu.iter_DIEs():
                             if die.offset == entry.die_ofs:
-                                print('Die Name: {}'.format(bytes2str(die.attributes['DW_AT_name'].value)))
+                                print(f"Die Name: {bytes2str(die.attributes['DW_AT_name'].value)}")
 
             # dump all entries in .debug_pubnames section.
             print('Dumping .debug_pubnames table ...')
             print('-' * 66)
-            print('%50s%8s%8s' % ('Symbol', 'CU_OFS', 'DIE_OFS'))
+            print(f"{'Symbol':>50}{'CU_OFS':>8}{'DIE_OFS':>8}")
             print('-' * 66)
             for (name, entry) in pubnames.items():
-                print('%50s%8d%8d' % (name, entry.cu_ofs, entry.die_ofs))
+                print(f"{name:>50}{entry.cu_ofs:>8}{entry.die_ofs:>8}")
             print('-' * 66)
 
         # get .debug_pubtypes section.
@@ -65,11 +64,10 @@ def process_file(filename):
         if pubtypes is None:
             print('ERROR: No .debug_pubtypes section found in ELF')
         else:
-            print('%d entries found in .debug_pubtypes' % len(pubtypes))
+            print(f'{len(pubtypes)} entries found in .debug_pubtypes')
 
             for name, entry in pubtypes.items():
-                print('%s: cu_ofs = %d, die_ofs = %d' %
-                        (name, entry.cu_ofs, entry.die_ofs))
+                print(f'{name}: cu_ofs = {entry.cu_ofs }, die_ofs = {entry.die_ofs}')
 
                 # get the actual CU/DIE that has this information.
                 print(f'Fetching the actual die for {name} ...')
@@ -77,16 +75,16 @@ def process_file(filename):
                     if cu.cu_offset == entry.cu_ofs:
                         for die in cu.iter_DIEs():
                             if die.offset == entry.die_ofs:
-                                print('Die Name: {}'.format(bytes2str(die.attributes['DW_AT_name'].value)))
+                                print(f"Die Name: {bytes2str(die.attributes['DW_AT_name'].value)}")
                                 die_info_rec(die)
 
             # dump all entries in .debug_pubtypes section.
             print('Dumping .debug_pubtypes table ...')
             print('-' * 66)
-            print('%50s%8s%8s' % ('Symbol', 'CU_OFS', 'DIE_OFS'))
+            print(f"{'Symbol':>50}{'CU_OFS':>8}{'DIE_OFS':>8}")
             print('-' * 66)
             for (name, entry) in pubtypes.items():
-                print('%50s%8d%8d' % (name, entry.cu_ofs, entry.die_ofs))
+                print(f'{name:>50}{entry.cu_ofs:>8}{entry.die_ofs:>8}')
             print('-' * 66)
 
 
@@ -94,9 +92,9 @@ def die_info_rec(die, indent_level='    '):
     """ A recursive function for showing information about a DIE and its
         children.
     """
-    print(indent_level + f'DIE tag={die.tag}, attrs=')
+    print(f'{indent_level}DIE tag={die.tag}, attrs=')
     for name, val in die.attributes.items():
-        print(indent_level + f'  {name} = {val}')
+        print(f'{indent_level}  {name} = {val}')
     child_indent = indent_level + '  '
     for child in die.iter_children():
         die_info_rec(child, child_indent)

@@ -150,7 +150,7 @@ class ELFFile:
         section_header = self._get_section_header(n)
         assert section_header is not None
         if type and section_header.sh_type not in type:
-            raise ELFError("Unexpected section type {}, expected {}".format(section_header['sh_type'], type))
+            raise ELFError(f"Unexpected section type {section_header['sh_type']}, expected {type}")
         return self._make_section(section_header)
     
     def _get_linked_symtab_section(self, n: int) -> SymbolTableSection:
@@ -161,7 +161,7 @@ class ELFFile:
         section_header = self._get_section_header(n)
         assert section_header is not None
         if section_header['sh_type'] not in ('SHT_SYMTAB', 'SHT_DYNSYM'):
-            raise ELFError("Section points at section %d of type %s, expected SHT_SYMTAB/SHT_DYNSYM" % (n, section_header['sh_type']))
+            raise ELFError(f"Section points at section {n} of type {section_header['sh_type']}, expected SHT_SYMTAB/SHT_DYNSYM")
         section = self._make_section(section_header)
         assert isinstance(section, SymbolTableSection)
         return section
@@ -174,7 +174,7 @@ class ELFFile:
         section_header = self._get_section_header(n)
         assert section_header is not None
         if section_header['sh_type'] != 'SHT_STRTAB':
-            raise ELFError("SHT_SYMTAB section points at section %d of type %s, expected SHT_STRTAB" % (n, section_header['sh_type']))
+            raise ELFError(f"SHT_SYMTAB section points at section {n} of type {section_header['sh_type']}, expected SHT_STRTAB")
         section = self._make_section(section_header)
         assert isinstance(section, StringTableSection)
         return section
@@ -662,7 +662,7 @@ class ELFFile:
         elif ei_class == b'\x02':
             self.elfclass = 64
         else:
-            raise ELFError(f'Invalid EI_CLASS {repr(ei_class)}')
+            raise ELFError(f'Invalid EI_CLASS {ei_class!r}')
 
         ei_data = self.stream.read(1)
         if ei_data == b'\x01':
@@ -670,7 +670,7 @@ class ELFFile:
         elif ei_data == b'\x02':
             self.little_endian = False
         else:
-            raise ELFError(f'Invalid EI_DATA {repr(ei_data)}')
+            raise ELFError(f'Invalid EI_DATA {ei_data!r}')
 
     def _section_offset(self, n: int) -> int:
         """ Compute the offset of section #n in the file

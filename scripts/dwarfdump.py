@@ -113,30 +113,30 @@ def _desc_data(attr, die: DIE) -> str:
     """ Hex with length driven by form
     """
     len = int(attr.form[12:]) * 2
-    return "0x%0*x" % (len, attr.value,)
+    return f"0x{attr.value:0{len}x}"
 
 def _desc_strx(attr, die: DIE) -> str:
-    return "indexed ({:08x}) string = \"{}\"".format(attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\"))
+    return f'indexed ({attr.raw_value:08x}) string = "{{}}"'.format(bytes2str(attr.value).replace("\\", "\\\\"))
 
 FORM_DESCRIPTIONS = dict(
-    DW_FORM_string=lambda attr, die: "\"{}\"".format(bytes2str(attr.value).replace("\\", "\\\\")),
-    DW_FORM_strp=lambda attr, die: " .debug_str[0x{:08x}] = \"{}\"".format(attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\")),
+    DW_FORM_string=lambda attr, die: '"{}"'.format(bytes2str(attr.value).replace("\\", "\\\\")),
+    DW_FORM_strp=lambda attr, die: f' .debug_str[0x{attr.raw_value:08x}] = "{{}}"'.format(bytes2str(attr.value).replace("\\", "\\\\")),
     DW_FORM_strx1=_desc_strx,
     DW_FORM_strx2=_desc_strx,
     DW_FORM_strx3=_desc_strx,
     DW_FORM_strx4=_desc_strx,
-    DW_FORM_line_strp=lambda attr, die: ".debug_line_str[0x{:08x}] = \"{}\"".format(attr.raw_value, bytes2str(attr.value).replace("\\", "\\\\")),
+    DW_FORM_line_strp=lambda attr, die: f'.debug_line_str[0x{attr.raw_value:08x}] = "{{}}"'.format(bytes2str(attr.value).replace("\\", "\\\\")),
     DW_FORM_flag_present=lambda attr, die: "true",
     DW_FORM_flag=lambda attr, die: f"0x{int(attr.value):02x}",
-    DW_FORM_addr=lambda attr, die: "0x%0*x" % (_addr_str_length(die), attr.value),
-    DW_FORM_addrx=lambda attr, die: "indexed (%08x) address = 0x%0*x" % (attr.raw_value, _addr_str_length(die), attr.value),
+    DW_FORM_addr=lambda attr, die: f"0x{attr.value:0{_addr_str_length(die)}x}",
+    DW_FORM_addrx=lambda attr, die: f"indexed ({attr.raw_value:08x}) address = 0x{attr.value:0{_addr_str_length(die)}x}",
     DW_FORM_data1=_desc_data,
     DW_FORM_data2=_desc_data,
     DW_FORM_data4=_desc_data,
     DW_FORM_data8=_desc_data,
-    DW_FORM_block1=lambda attr, die: "<0x{:02x}> {} ".format(len(attr.value), " ".join(f"{b:02x}" for b in attr.value)),
-    DW_FORM_block2=lambda attr, die: "<0x{:04x}> {} ".format(len(attr.value), " ".join(f"{b:02x}" for b in attr.value)),
-    DW_FORM_block4=lambda attr, die: "<0x{:08x}> {} ".format(len(attr.value), " ".join(f"{b:02x}" for b in attr.value)),
+    DW_FORM_block1=lambda attr, die: f'<0x{len(attr.value):02x}> {" ".join(f"{b:02x}" for b in attr.value)} ',
+    DW_FORM_block2=lambda attr, die: f'<0x{len(attr.value):04x}> {" ".join(f"{b:02x}" for b in attr.value)} ',
+    DW_FORM_block4=lambda attr, die: f'<0x{len(attr.value):08x}> {" ".join(f"{b:02x}" for b in attr.value)} ',
     DW_FORM_ref=_desc_ref,
     DW_FORM_ref1=_desc_ref, DW_FORM_ref2=_desc_ref,
     DW_FORM_ref4=_desc_ref, DW_FORM_ref8=_desc_ref,
@@ -186,11 +186,10 @@ def _desc_ranges(attr, die: DIE) -> str:
     addr_str_len = die.cu.header.address_size*2
     for entry in rangelist:
         if isinstance(entry, RangeEntry):
-            lines.append("                 [0x%0*x, 0x%0*x)" % (
-                addr_str_len,
-                (0 if entry.is_absolute else base_ip) + entry.begin_offset,
-                addr_str_len,
-                (0 if entry.is_absolute else base_ip) + entry.end_offset))
+            lines.append(
+                f"                 [0x{(0 if entry.is_absolute else base_ip) + entry.begin_offset:0{addr_str_len}x}"
+                f", 0x{(0 if entry.is_absolute else base_ip) + entry.end_offset:0{addr_str_len}x})"
+            )
         elif isinstance(entry, elftools.dwarf.ranges.BaseAddressEntry):
             base_ip = entry.base_address
         else:
@@ -214,12 +213,11 @@ def _desc_locations(attr, die: DIE) -> str:
         addr_str_len = die.cu.header.address_size*2
         for entry in loclist:
             if isinstance(entry, LocationEntry):
-                lines.append("                 [0x%0*x, 0x%0*x): %s" % (
-                    addr_str_len,
-                    (0 if entry.is_absolute else base_ip) + entry.begin_offset,
-                    addr_str_len,
-                    (0 if entry.is_absolute else base_ip) + entry.end_offset,
-                    _desc_expression(entry.loc_expr, die)))
+                lines.append(
+                    f"                 [0x{(0 if entry.is_absolute else base_ip) + entry.begin_offset:0{addr_str_len}x}"
+                    f", 0x{(0 if entry.is_absolute else base_ip) + entry.end_offset:0{addr_str_len}x})"
+                    f": {_desc_expression(entry.loc_expr, die)}"
+                )
             elif isinstance(entry, LocBaseAddressEntry):
                 base_ip = entry.base_address
             else:
@@ -249,24 +247,21 @@ def _desc_reg(reg_no: int, cu: CompileUnit) -> str:
 def _desc_operation(op, op_name: str, args, cu: CompileUnit) -> str:
     # Not sure about regx(regno) and bregx(regno, offset)
     if 0x50 <= op <= 0x6f: # reg0...reg31 - decode reg name
-        return op_name + " " + _desc_reg(op - 0x50, cu)
+        return f"{op_name} {_desc_reg(op - 0x50, cu)}"
     elif 0x70 <= op <= 0x8f: # breg0...breg31(offset) - also decode reg name
-        return '%s %s%+d' % (
-            op_name,
-            _desc_reg(op - 0x70, cu),
-            args[0])
+        return f"{op_name} {_desc_reg(op - 0x70, cu)}{args[0]:+}"
     elif op_name in ('DW_OP_fbreg', 'DW_OP_bra', 'DW_OP_skip', 'DW_OP_consts', ): # Argument is decimal with a leading sign
-        return op_name + ' ' + "%+d" % (args[0])
+        return f"{op_name} {args[0]:+}"
     elif op_name in ('DW_OP_const1s', 'DW_OP_const2s'): # Argument is decimal without a leading sign
-        return op_name + ' ' + "%d" % (args[0])
+        return f"{op_name} {args[0]}"
     elif op_name in ('DW_OP_entry_value', 'DW_OP_GNU_entry_value'): # No space between opcode and args
-        return op_name + _desc_operationarg(args[0], cu)
+        return f"{op_name}{_desc_operationarg(args[0], cu)}"
     elif op_name == 'DW_OP_regval_type': # Arg is a DIE pointer
         return f"{op_name} {_desc_reg(args[0], cu)} (0x{args[1]:08x} -> 0x{args[1] + cu.cu_offset:08x}) \"{_DIE_name(cu._get_cached_DIE(args[1] + cu.cu_offset))}\""
     elif op_name == 'DW_OP_convert': # Arg is a DIE pointer
         return f"{op_name} (0x{args[0]:08x} -> 0x{args[0] + cu.cu_offset:08x}) \"{_DIE_name(cu._get_cached_DIE(args[0] + cu.cu_offset))}\""
     elif args:
-        return op_name + ' ' + ', '.join(_desc_operationarg(s, cu) for s in args)
+        return f"{op_name} {', '.join(_desc_operationarg(s, cu) for s in args)}"
     else:
         return op_name
 
@@ -359,7 +354,7 @@ class ReadElf:
         arches = {"EM_386": "i386", "EM_X86_64": "x86-64", "EM_ARM": "littlearm", "EM_AARCH64": "littleaarch64", "EM_LOONGARCH": "loongarch", "EM_RISCV": "littleriscv", "EM_MIPS": "mips", "EM_TI_C2000": "unknown"}
         arch = arches[self.elffile['e_machine']]
         bits = self.elffile.elfclass
-        self._emitline("%s:	file format elf%d-%s" % (filename, bits, arch))
+        self._emitline(f"{filename}:	file format elf{bits}-{arch}")
 
     def _emit(self, s: str = '') -> None:
         """ Emit an object to output
@@ -380,33 +375,34 @@ class ReadElf:
             else:
                 unit_type_str = ''
 
-            self._emitline("0x%08x: Compile Unit: length = 0x%08x, format = DWARF%d, version = 0x%04x,%s abbr_offset = 0x%04x, addr_size = 0x%02x (next unit at 0x%08x)" %(
-                cu.cu_offset,
-                cu.header.unit_length,
-                cu.structs.dwarf_format,
-                cu.header.version,
-                unit_type_str,
-                cu.header.debug_abbrev_offset,
-                cu.header.address_size,
-                cu.cu_offset + (4 if cu.structs.dwarf_format == 32 else 12) + cu.header.unit_length))
+            self._emitline(
+                f"0x{cu.cu_offset:08x}: Compile Unit:"
+                f" length = 0x{cu.header.unit_length:08x},"
+                f" format = DWARF{cu.structs.dwarf_format},"
+                f" version = 0x{cu.header.version:04x},{unit_type_str}"
+                f" abbr_offset = 0x{cu.header.debug_abbrev_offset:04x}"
+                f", addr_size = 0x{cu.header.address_size:02x}"
+                f" (next unit at 0x{cu.cu_offset + (4 if cu.structs.dwarf_format == 32 else 12) + cu.header.unit_length:08x})"
+            )
             self._emitline()
             parent = cu.get_top_DIE()
             for die in cu.iter_DIEs():
                 if die.get_parent() == parent:
                     parent = die
                 if not die.is_null(): 
-                    self._emitline("0x%08x: %s [%d] %s %s" % (
-                        die.offset,
-                        die.tag if isinstance(die.tag, str) else f"DW_TAG_unknown_{die.tag:x}",
-                        die.abbrev_code,
-                        '*' if die.has_children else '',
-                        f'(0x{die.get_parent().offset:08x})' if die.get_parent() is not None else ''))
+                    self._emitline(
+                        f"0x{die.offset:08x}:"
+                        f" {die.tag if isinstance(die.tag, str) else f'DW_TAG_unknown_{die.tag:x}'}"
+                        f" [{die.abbrev_code}]"
+                        f" {'*' if die.has_children else ''}"
+                        f" {f'(0x{die.get_parent().offset:08x})' if die.get_parent() is not None else ''}"
+                    )
                     for attr_name in die.attributes:
                         attr = die.attributes[attr_name]
-                        self._emitline("              {} [{}]	({})".format(
-                            attr_name if isinstance(attr_name, str) else f"DW_AT_unknown_{attr_name:x}",
-                            attr.form,
-                            self.describe_attr_value(die, attr)))
+                        self._emitline(
+                            f'              {attr_name if isinstance(attr_name, str) else f"DW_AT_unknown_{attr_name:x}"}'
+                            f' [{attr.form}]	({self.describe_attr_value(die, attr)})'
+                        )
                 else:
                     self._emitline(f"0x{die.offset:08x}: NULL")
                     parent = die.get_parent()
@@ -438,11 +434,10 @@ class ReadElf:
         base_ip = _get_cu_base(cu)
         for entry in rangelist:
             if isinstance(entry, RangeEntry):
-                self._emitline("[0x%0*x, 0x%0*x)" % (
-                    addr_str_len,
-                    (0 if entry.is_absolute else base_ip) + entry.begin_offset,
-                    addr_str_len,
-                    (0 if entry.is_absolute else base_ip) + entry.end_offset))
+                self._emitline(
+                    f"[0x{(0 if entry.is_absolute else base_ip) + entry.begin_offse:0{addr_str_len}x},"
+                    f" 0x{(0 if entry.is_absolute else base_ip) + entry.end_offset:0{addr_str_len}x})"
+                )
             elif isinstance(entry, elftools.dwarf.ranges.BaseAddressEntry):
                 base_ip = entry.base_address
             else:
@@ -461,14 +456,15 @@ class ReadElf:
             if 'DW_AT_ranges' in die.attributes}
 
         for cu in ranges_sec.iter_CUs():
-            self._emitline("0x%08x: range list header: length = 0x%08x, format = DWARF%d, version = 0x%04x, addr_size = 0x%02x, seg_size = 0x%02x, offset_entry_count = 0x%08x" % (
-                cu.cu_offset,
-                cu.unit_length,
-                64 if cu.is64 else 32,
-                cu.version,
-                cu.address_size,
-                cu.segment_selector_size,
-                cu.offset_count))
+            self._emitline(
+                f"0x{cu.cu_offset:08x}: range list header:"
+                f" length = 0x{cu.unit_length:08x}"
+                f", format = DWARF{64 if cu.is64 else 32}"
+                f", version = 0x{cu.version:04x}"
+                f", addr_size = 0x{cu.address_size:02x}"
+                f", seg_size = 0x{cu.segment_selector_size:02x}"
+                f", offset_entry_count = 0x{cu.offset_count:08x}"
+            )
             self._emitline("ranges:")
             if cu.offset_count > 0:
                 rangelists = [ranges_sec.get_range_list_at_offset_ex(offset) for offset in cu.offsets]
@@ -489,25 +485,25 @@ class ReadElf:
             self._emit(f"0x{entry.entry_offset:08x}: [{type.ljust(max_type_len)}]:  ")
             if type == 'DW_RLE_base_address':
                 base_ip = entry.address
-                self._emitline("0x%0*x" % (addr_str_len, base_ip))
+                self._emitline(f"0x{base_ip:0{addr_str_len}x}")
             elif type == 'DW_RLE_offset_pair':
-                self._emitline("0x%0*x, 0x%0*x => [0x%0*x, 0x%0*x)" % (
-                    addr_str_len, entry.start_offset,
-                    addr_str_len, entry.end_offset,
-                    addr_str_len, entry.start_offset + base_ip,
-                    addr_str_len, entry.end_offset + base_ip))
+                self._emitline(
+                    f"0x{entry.start_offset:0{addr_str_len}x}, 0x{entry.end_offset:0{addr_str_len}x}"
+                    " => "
+                    f"[0x{entry.start_offset + base_ip:0{addr_str_len}x}, 0x{entry.end_offset + base_ip:0{addr_str_len}x})"
+                )
             elif type == 'DW_RLE_start_length':
-                self._emitline("0x%0*x, 0x%0*x => [0x%0*x, 0x%0*x)" % (
-                    addr_str_len, entry.start_address,
-                    addr_str_len, entry.length,
-                    addr_str_len, entry.start_address,
-                    addr_str_len, entry.start_address + entry.length))
+                self._emitline(
+                    f"0x{entry.start_address:0{addr_str_len}x}, 0x{entry.length:0{addr_str_len}x}"
+                    " => "
+                    f"[0x{entry.start_address:0{addr_str_len}x}, 0x{entry.start_address + entry.length:0{addr_str_len}x})"
+                )
             elif type == 'DW_RLE_start_end':
-                self._emitline("0x%0*x, 0x%0*x => [0x%0*x, 0x%0*x)" % (
-                    addr_str_len, entry.start_address,
-                    addr_str_len, entry.end_address,
-                    addr_str_len, entry.start_address,
-                    addr_str_len, entry.end_address))
+                self._emitline(
+                    f"0x{entry.start_address:0{addr_str_len}x}, 0x{entry.end_address:0{addr_str_len}x}"
+                    " => "
+                    f"[0x{entry.start_address:0{addr_str_len}x}, 0x{entry.end_address:0{addr_str_len}x})"
+                )
             else:
                 raise NotImplementedError()
         last = rangelist[-1]
