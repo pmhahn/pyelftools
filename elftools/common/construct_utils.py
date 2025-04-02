@@ -57,7 +57,7 @@ class ULEB128(Construct):
     """A construct based parser for ULEB128 encoding.
     """
     if TYPE_CHECKING:
-        name: str
+        name: str  # for typing disallow None
     def _parse(self, stream: IO[bytes], context: Container) -> int:
         value = 0
         shift = 0
@@ -75,7 +75,7 @@ class SLEB128(Construct):
     """A construct based parser for SLEB128 encoding.
     """
     if TYPE_CHECKING:
-        name: str
+        name: str  # for typing disallow None
     def _parse(self, stream: IO[bytes], context: Container) -> int:
         value = 0
         shift = 0
@@ -101,7 +101,7 @@ class StreamOffset(Construct):
     """
     __slots__: list[str] = []
     if TYPE_CHECKING:
-        name: str
+        name: str  # for typing disallow None
     def __init__(self, name: str) -> None:
         Construct.__init__(self, name)
         self._set_flag(self.FLAG_DYNAMIC)
