@@ -59,6 +59,7 @@ def describe_CFI_instructions(entry):
     if isinstance(entry, CIE):
         cie = entry
     else: # FDE
+        assert entry.cie is not None
         cie = entry.cie
         pc = entry['initial_location']
 
