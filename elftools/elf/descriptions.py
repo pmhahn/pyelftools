@@ -57,9 +57,9 @@ def describe_e_version_numeric(x):
 
 
 def describe_p_type(x):
-    if x in _DESCR_P_TYPE:
+    if isinstance(x, str) and x in _DESCR_P_TYPE:
         return _DESCR_P_TYPE[x]
-    elif x >= ENUM_P_TYPE_BASE['PT_LOOS'] and x <= ENUM_P_TYPE_BASE['PT_HIOS']:
+    elif isinstance(x, int) and ENUM_P_TYPE_BASE['PT_LOOS'] <= x <= ENUM_P_TYPE_BASE['PT_HIOS']:
         return 'LOOS+%lx' % (x - ENUM_P_TYPE_BASE['PT_LOOS'])
     else:
         return _unknown
@@ -89,10 +89,9 @@ def describe_rh_flags(x):
 
 
 def describe_sh_type(x):
-    if x in _DESCR_SH_TYPE:
+    if isinstance(x, str) and x in _DESCR_SH_TYPE:
         return _DESCR_SH_TYPE[x]
-    elif (x >= ENUM_SH_TYPE_BASE['SHT_LOOS'] and
-          x < ENUM_SH_TYPE_BASE['SHT_GNU_versym']):
+    elif isinstance(x, int) and ENUM_SH_TYPE_BASE['SHT_LOOS'] <= x < ENUM_SH_TYPE_BASE['SHT_GNU_versym']:
         return 'loos+0x%lx' % (x - ENUM_SH_TYPE_BASE['SHT_LOOS'])
     else:
         return _unknown
@@ -287,7 +286,7 @@ def describe_note_gnu_properties(properties, machine):
     for prop in properties:
         t, d, sz = prop.pr_type, prop.pr_data, prop.pr_datasz
         if t == 'GNU_PROPERTY_STACK_SIZE':
-            if type(d) is int:
+            if isinstance(d, int):
                 prop_desc = 'stack size: 0x%x' % d
             else:
                 prop_desc = 'stack size: <corrupt length: 0x%x>' % sz

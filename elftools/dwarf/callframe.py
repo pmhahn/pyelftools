@@ -140,6 +140,7 @@ class CallFrameInfo:
                     header, entry_structs)
         else:
             cie = self._parse_cie_for_fde(offset, header, entry_structs)
+            assert isinstance(cie, CFIEntry)
             aug_bytes = self._read_augmentation_data(entry_structs)
             lsda_encoding = cie.augmentation_dict.get('LSDA_encoding', DW_EH_encoding_flags['DW_EH_PE_omit'])
             if lsda_encoding != DW_EH_encoding_flags['DW_EH_PE_omit']:
@@ -169,6 +170,7 @@ class CallFrameInfo:
 
         else: # FDE
             cie = self._parse_cie_for_fde(offset, header, entry_structs)
+            assert isinstance(cie, CIE)
             entry = FDE(
                 header=header, instructions=instructions, offset=offset,
                 structs=entry_structs, cie=cie,
@@ -372,6 +374,7 @@ class CallFrameInfo:
         minimal_header = struct_parse(Struct('eh_frame_minimal_header',
                                              *fields), self.stream, offset)
         cie = self._parse_cie_for_fde(offset, minimal_header, entry_structs)
+        assert isinstance(cie, CFIEntry)
         initial_location_offset = self.stream.tell()
 
         # Try to parse the initial location. We need the initial location in

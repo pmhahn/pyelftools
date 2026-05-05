@@ -120,9 +120,13 @@ def describe_CFI_instructions(entry):
 def describe_CFI_register_rule(rule):
     s = _DESCR_CFI_REGISTER_RULE_TYPE[rule.type]
     if rule.type in ('OFFSET', 'VAL_OFFSET'):
+        assert isinstance(rule.arg, int)
         s += '%+d' % rule.arg
     elif rule.type == 'REGISTER':
-        s += describe_reg_name(rule.arg)
+        assert isinstance(rule.arg, int)
+        reg = describe_reg_name(rule.arg)
+        assert reg is not None
+        s += reg
     return s
 
 
@@ -130,6 +134,8 @@ def describe_CFI_CFA_rule(rule):
     if rule.expr:
         return 'exp'
     else:
+        assert isinstance(rule.reg, int)
+        assert isinstance(rule.offset, int)
         return '%s%+d' % (describe_reg_name(rule.reg), rule.offset)
 
 
